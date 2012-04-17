@@ -1,0 +1,13 @@
+jacksonVersion="1.9.5"
+jackson = [
+   jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
+   xc: "org.codehaus.jackson:jackson-xc:${jacksonVersion}",
+   core: "org.codehaus.jackson:jackson-core-asl:${jacksonVersion}",
+   mapper: "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
+]
+
+///////////////////////////////////////////////
+//Test dependencies
+///////////////////////////////////////////////
+junit = "junit:junit:4.8.2"
+mockito = "org.mockito:mockito-all:1.8.5"

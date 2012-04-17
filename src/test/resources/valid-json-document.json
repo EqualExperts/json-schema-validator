@@ -1,0 +1,22 @@
+{
+    "id" : 1,
+    "brand" : "Samsung",
+    "salePrice" : {
+        "amount" : 10.00,
+        "additionalProperty" : "xxxxxxx"
+    },
+    "costPrice" : {
+        "amount" : 70.00,
+        "additionalProperty" : "xxxxxxx"
+    },
+    "extraInfo": [
+        {
+          "info" : "green length"
+        },
+        {
+          "info" : "big length"
+        }
+    ],
+    "description": "some description",
+    "regexValue" : "123.321.111.+"
+}

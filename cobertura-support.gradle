@@ -1,0 +1,108 @@
+def coberturaRuntime = 'net.sourceforge.cobertura:cobertura:1.9.4.1'
+
+configurations {
+  testRuntime
+}
+dependencies {
+  testRuntime coberturaRuntime
+}
+
+task coberturaReports
+
+coberturaReports.codeCoverageEnabled = System.getProperty("coverage")
+coberturaReports.reportInformation = []
+
+if (coberturaReports.codeCoverageEnabled) {
+  if (!project.hasProperty("build")) {
+    task build
+  }
+  build.dependsOn(coberturaReports)
+}
+
+allprojects {
+  reportCodeCoverageIfEnabled = {
+    if (!coberturaReports.codeCoverageEnabled) {
+      return
+    }
+
+    rootProject.coberturaReports.dependsOn(test)
+
+    def mainClassesDirectory = sourceSets.main.classesDir
+    def backupOfUninstrumentedClasses = "${mainClassesDirectory}-copy"
+    def coberturaDataFile = "${project.buildDir}/cobertura.ser"
+    def srcDirs = sourceSets.main.java.srcDirs + project.file("src/main/scala")
+
+    rootProject.coberturaReports.reportInformation << [sourceDirs: srcDirs, dataFile: coberturaDataFile]
+
+    dependencies {
+      testRuntime coberturaRuntime
+    }
+
+    test.doFirst {
+      if (mainClassesDirectory.exists()) {
+        ant {
+          delete(file: coberturaDataFile, failonerror: false)
+          delete(dir: backupOfUninstrumentedClasses, failonerror: false)
+          copy(todir: backupOfUninstrumentedClasses) {
+            fileset(dir: mainClassesDirectory)
+          }
+          taskdef(resource: 'tasks.properties', classpath: configurations.testRuntime.asPath)
+          'cobertura-instrument'(datafile: coberturaDataFile) {
+            fileset(dir: mainClassesDirectory, includes: "**/*.class")
+          }
+        }
+      }
+    }
+
+    test.doLast {
+      if (new File(backupOfUninstrumentedClasses).exists()) {
+        ant {
+          delete(file: mainClassesDirectory)
+          move(file: backupOfUninstrumentedClasses, tofile: mainClassesDirectory)
+        }
+      }
+    }
+
+    test {
+      systemProperties["net.sourceforge.cobertura.datafile"] = coberturaDataFile
+    }
+  }
+}
+
+coberturaReports << {
+  //configurations {
+    //testRuntime
+  //}
+  //dependencies {
+    //testRuntime coberturaRuntime
+  //}
+
+  if (coberturaReports.reportInformation.empty) {
+    throw new RuntimeException("No cobertura projects enabled!")
+  }
+
+  println "Generating report"
+  buildDirName = project.buildDirName
+  def mergedSerFile = "${project.buildDir}/cobertura.ser"
+  ant {
+    delete(file: mergedSerFile)
+    taskdef(resource: 'tasks.properties', classpath: configurations.testRuntime.asPath)
+    'cobertura-merge'(datafile: mergedSerFile) {
+      coberturaReports.reportInformation.each {
+        if (new File(it.dataFile.toString()).exists()) {
+          fileset(file: it.dataFile)
+        }
+      }
+    }
+    'cobertura-report'(destdir: "${buildDirName}/reports/coverage", format: System.getProperty("coverage"), datafile: mergedSerFile) {
+      coberturaReports.reportInformation.each {
+        it.sourceDirs.each {
+          if (new File(it.toString()).exists()) {
+            fileset(dir: it, includes: "**/*.java")
+            fileset(dir: it, includes: "**/*.scala")
+          }
+        }
+      }
+    }
+  }
+}

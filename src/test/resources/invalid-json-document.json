@@ -1,0 +1,26 @@
+{
+    "brand" : "AnyBrand",
+    "salePrice" : {
+        "amount" : 5.00
+    },
+    "costPrice" : {
+        "amount" : 10.00
+    },
+    "extraInfo": [
+        {
+          "info" : "green length"
+        },
+        {
+          "info" : "big length"
+        },
+        {
+          "info" : "pink"
+        },
+        {
+          "info" : "blue length XXX blue length"
+        }
+    ],
+    "description": "short",
+    "longDescription" : "some long description more than permitted limit",
+    "regexValue" : "++"
+}

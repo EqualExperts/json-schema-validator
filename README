@@ -1,0 +1,10 @@
+A pure Java JSON Schema Validator
+
+For more information about JSON Schema, see http://json-schema.org/
+
+We use Gradle (http://www.gradle.org) for our build files
+
+To get started:
+ - gradle clean build
+ - gradle tasks
+ - gradle cleanIdea idea (to generate intellij project files)
