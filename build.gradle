@@ -18,3 +18,8 @@ dependencies {
 apply from: "ide-support.gradle"
 apply from: "cobertura-support.gradle"
 reportCodeCoverageIfEnabled()
+
+jar {
+    from file('LICENSE.txt')
+    from file('NOTICE')
+}
