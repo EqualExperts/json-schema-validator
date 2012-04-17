@@ -9,4 +9,5 @@ To get started:
  - gradle tasks
  - gradle cleanIdea idea (to generate intellij project files)
 
- License: Apache Software License 2.0. See LICENSE.txt and http://www.apache.org/licenses/LICENSE-2.0 for more details.
+License: Apache Software License 2.0.
+See LICENSE.txt and http://www.apache.org/licenses/LICENSE-2.0 for more details.
