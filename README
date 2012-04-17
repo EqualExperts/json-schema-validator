@@ -2,7 +2,7 @@ A pure Java JSON Schema Validator
 
 For more information about JSON Schema, see http://json-schema.org/
 
-We use Gradle (http://www.gradle.org) for our build files
+We use Gradle version 0.9.2 (http://www.gradle.org) for our build files
 
 To get started:
  - gradle clean build
