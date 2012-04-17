@@ -4,7 +4,6 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.Test;
-import static org.junit.Assert.fail;
 import org.codehaus.jackson.JsonParseException;
 
 import java.io.File;
@@ -17,11 +16,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class SchemaCompilerTest {
     private static JsonFactory jsonFactory = new JsonFactory(new ObjectMapper());
@@ -321,7 +316,7 @@ public class SchemaCompilerTest {
 
         JsonSchema result = schemaFactory.parse(rawSchema);
 
-        assertTrue(result instanceof JsonSchema);
+        assertNotNull(result);
     }
 
     @Test
