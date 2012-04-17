@@ -86,7 +86,7 @@ public class SchemaCompiler {
             return new SchemaReference(cache, referencedSchemaLocation);
         }
 
-        String type = rawSchema.get("type").getValueAsText();
+        String type = rawSchema.get("type").asText();
         if (isSimpleTypeSchema(type)) {
             return parseSimpleTypeSchema(rawSchema);
         } else if (isObjectSchema(type)) {
@@ -116,7 +116,7 @@ public class SchemaCompiler {
 
     private SimpleTypeSchema parseSimpleTypeSchema(JsonNode rawSchema) {
         SimpleTypeSchema result = new SimpleTypeSchema();
-        result.setType(SimpleType.valueOf(rawSchema.get("type").getValueAsText().toUpperCase()));
+        result.setType(SimpleType.valueOf(rawSchema.get("type").asText().toUpperCase()));
 
         JsonNode pattern = rawSchema.get("pattern");
         if (pattern != null) {
