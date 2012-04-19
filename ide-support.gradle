@@ -25,11 +25,10 @@ ideaProject {
 }
 
 ideaWorkspace {
-  withXml { provider ->
-    def runManagerComponent = provider.asNode().component.find { it.'@name' == 'RunManager'}
-    def defaultJunitConfig = runManagerComponent.configuration.find {(it.'@default' == 'true') && (it.'@type' == 'JUnit')}
-    def workingDirectoryOption = defaultJunitConfig.option.find {it.'@name' == 'WORKING_DIRECTORY'}
-    workingDirectoryOption.'@value' = '$MODULE_DIR$'
-    defaultJunitConfig.envs[0].appendNode("env", [name: "CONFIG_ENV", value: "local"])
-  }
+    withXml { provider ->
+        def runManagerComponent = provider.asNode().component.find { it.'@name' == 'RunManager'}
+        def defaultJunitConfig = runManagerComponent.configuration.find {(it.'@default' == 'true') && (it.'@type' == 'JUnit')}
+        def workingDirectoryOption = defaultJunitConfig.option.find {it.'@name' == 'WORKING_DIRECTORY'}
+        workingDirectoryOption.'@value' = '$MODULE_DIR$'
+    }
 }
