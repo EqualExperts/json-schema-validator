@@ -11,7 +11,7 @@ import org.codehaus.jackson.JsonParser;
 import uk.co.o2.json.schema.ObjectSchema.Property;
 import org.codehaus.jackson.JsonParseException;
 
-public class SchemaCompiler {
+class SchemaCompiler {
     private final SchemaPassThroughCache cache;
     private final JsonFactory jsonFactory;
     private final Queue<ProcessingEntry> schemasToCompile = new LinkedList<ProcessingEntry>();
