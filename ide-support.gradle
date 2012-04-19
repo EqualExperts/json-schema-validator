@@ -30,5 +30,8 @@ ideaWorkspace {
         def defaultJunitConfig = runManagerComponent.configuration.find {(it.'@default' == 'true') && (it.'@type' == 'JUnit')}
         def workingDirectoryOption = defaultJunitConfig.option.find {it.'@name' == 'WORKING_DIRECTORY'}
         workingDirectoryOption.'@value' = '$MODULE_DIR$'
+        if (System.getenv('JAVA_OPTS')) {
+            defaultJunitConfig.option.find {it.'@name' == 'VM_PARAMETERS'}.'@value' = System.getenv('JAVA_OPTS')
+        }
     }
 }
