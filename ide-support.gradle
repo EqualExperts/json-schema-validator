@@ -5,33 +5,37 @@ allprojects {
 //ideaModule.enabled = false
 //ideaProject.subprojects.remove(project)
 
-ideaProject {
-    def vcsMappings = [svn: "svn info", hg4idea: "hg status", Git: "git status"]
+def versionControlMappings = [svn: "svn info", hg4idea: "hg status", Git: "git status"]
 
-    withXml { provider ->
+def projectVersionControlClosure = { provider ->
+    def vcs = versionControlMappings.find {
+        try {
+            it.value.execute(null, rootProject.projectDir).waitFor() == 0
+        } catch (Exception ignore) {
+            return false
+        }
+    }
 
-        def vcs = vcsMappings.find {
-            try {
-                it.value.execute(null, rootProject.projectDir).waitFor() == 0
-            } catch (Exception ignore) {
-                return false
-            }
-        }
-        if (vcs) {
-            def vcsConfig = provider.asNode().component.find { it.'@name' == 'VcsDirectoryMappings' }
-            vcsConfig.mapping[0].'@vcs' = vcs.key
-        }
+    if (vcs) {
+        def vcsConfig = provider.asNode().component.find { it.'@name' == 'VcsDirectoryMappings' }
+        vcsConfig.mapping[0].'@vcs' = vcs.key
     }
 }
 
-ideaWorkspace {
-    withXml { provider ->
-        def runManagerComponent = provider.asNode().component.find { it.'@name' == 'RunManager'}
-        def defaultJunitConfig = runManagerComponent.configuration.find {(it.'@default' == 'true') && (it.'@type' == 'JUnit')}
-        def workingDirectoryOption = defaultJunitConfig.option.find {it.'@name' == 'WORKING_DIRECTORY'}
-        workingDirectoryOption.'@value' = '$MODULE_DIR$'
-        if (System.getenv('JAVA_OPTS')) {
-            defaultJunitConfig.option.find {it.'@name' == 'VM_PARAMETERS'}.'@value' = System.getenv('JAVA_OPTS')
-        }
+def workspaceJunitClosure = { provider ->
+    def runManagerComponent = provider.asNode().component.find { it.'@name' == 'RunManager'}
+    def defaultJunitConfig = runManagerComponent.configuration.find {(it.'@default' == 'true') && (it.'@type' == 'JUnit')}
+
+    defaultJunitConfig.option.find {it.'@name' == 'WORKING_DIRECTORY'}.'@value' = '$MODULE_DIR$'
+    if (System.getenv('JAVA_OPTS')) {
+        defaultJunitConfig.option.find {it.'@name' == 'VM_PARAMETERS'}.'@value' = System.getenv('JAVA_OPTS')
     }
+}
+
+if (gradle.gradleVersion.startsWith('0.9.')) {
+    ideaProject { withXml(projectVersionControlClosure) }
+    ideaWorkspace { withXml(workspaceJunitClosure) }
+} else {
+    idea.project.ipr.withXml(projectVersionControlClosure)
+    idea.workspace.iws.withXml(workspaceJunitClosure)
 }

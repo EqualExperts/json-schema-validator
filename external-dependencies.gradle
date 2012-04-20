@@ -1,13 +1,21 @@
-jacksonVersion="1.9.5"
-jackson = [
-   jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
-   xc: "org.codehaus.jackson:jackson-xc:${jacksonVersion}",
-   core: "org.codehaus.jackson:jackson-core-asl:${jacksonVersion}",
-   mapper: "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
+def jacksonVersion="1.9.5"
+def externalDependencies = [
+    jackson: [
+       jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
+       xc: "org.codehaus.jackson:jackson-xc:${jacksonVersion}",
+       core: "org.codehaus.jackson:jackson-core-asl:${jacksonVersion}",
+       mapper: "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
+    ],
+
+    ///////////////////////////////////////////////
+    //Test dependencies
+    ///////////////////////////////////////////////
+    junit: "junit:junit:4.8.2",
+    mockito:"org.mockito:mockito-all:1.8.5"
 ]
 
-///////////////////////////////////////////////
-//Test dependencies
-///////////////////////////////////////////////
-junit = "junit:junit:4.8.2"
-mockito = "org.mockito:mockito-all:1.8.5"
+if (gradle.gradleVersion.startsWith('0.9.')) {
+    externalDependencies.each { project[it.key] = it.value }
+} else {
+    externalDependencies.each { project.ext[it.key] = it.value }
+}
