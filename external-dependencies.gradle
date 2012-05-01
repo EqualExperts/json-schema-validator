@@ -1,4 +1,4 @@
-def jacksonVersion="1.9.5"
+def jacksonVersion="1.9.6"
 def externalDependencies = [
     jackson: [
        jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
@@ -10,8 +10,8 @@ def externalDependencies = [
     ///////////////////////////////////////////////
     //Test dependencies
     ///////////////////////////////////////////////
-    junit: "junit:junit:4.8.2",
-    mockito:"org.mockito:mockito-all:1.8.5"
+    junit: "junit:junit:4.10",
+    mockito:"org.mockito:mockito-all:1.9.0"
 ]
 
 if (gradle.gradleVersion.startsWith('0.9.')) {
