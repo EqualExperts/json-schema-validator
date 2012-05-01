@@ -1,0 +1,8 @@
+{
+   "type" : "object",
+   "required" : true,
+   "additionalProperties" : false,
+   "properties" : {
+       "name" : {"type" : "string", "required" : true}
+   }
+}

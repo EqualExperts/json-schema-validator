@@ -1,4 +1,5 @@
 def jacksonVersion="1.9.6"
+def jerseyVersion="1.6"
 def externalDependencies = [
     jackson: [
        jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
@@ -6,12 +7,16 @@ def externalDependencies = [
        core: "org.codehaus.jackson:jackson-core-asl:${jacksonVersion}",
        mapper: "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
     ],
-
+    jsr311: "javax.ws.rs:jsr311-api:1.1.1",
     ///////////////////////////////////////////////
     //Test dependencies
     ///////////////////////////////////////////////
     junit: "junit:junit:4.10",
-    mockito:"org.mockito:mockito-all:1.9.0"
+    mockito:"org.mockito:mockito-all:1.9.0",
+    jersey: [
+        core: "com.sun.jersey:jersey-core:${jerseyVersion}",
+        server: "com.sun.jersey:jersey-server:${jerseyVersion}"
+    ]
 ]
 
 if (gradle.gradleVersion.startsWith('0.9.')) {

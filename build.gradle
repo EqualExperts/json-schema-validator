@@ -11,8 +11,9 @@ allprojects {
 
 apply from: "external-dependencies.gradle"
 dependencies {
-    compile jackson.xc, jackson.core, jackson.mapper
+    compile jackson.xc, jackson.core, jackson.mapper, jackson.jaxrs, jsr311
     testCompile junit, mockito
+    runtime jersey.core, jersey.server
 }
 
 apply from: "ide-support.gradle"
