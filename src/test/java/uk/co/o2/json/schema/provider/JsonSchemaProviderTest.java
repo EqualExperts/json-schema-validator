@@ -2,6 +2,7 @@ package uk.co.o2.json.schema.provider;
 
 import org.junit.Test;
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import java.io.ByteArrayInputStream;
@@ -18,7 +19,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("unchecked")
 public class JsonSchemaProviderTest {
     @Test
-    public void readFrom_shouldNotPerformSchemaValidationWhenNoSchemaAnnotationPresent() throws Exception {
+    public void readFrom_shouldNotPerformSchemaValidation_whenNoAnnotationsArePresent() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
         InputStream inputStream = new ByteArrayInputStream("{\"name\": \"fred\"}".getBytes("UTF-8"));
@@ -27,11 +28,26 @@ public class JsonSchemaProviderTest {
         DummyClass result = (DummyClass) provider.readFrom(clazz, DummyClass.class, new Annotation[0], MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
         
         assertEquals("fred", result.getName());
+        verifyNoMoreInteractions(schemaLookup);
+    }
+
+    @Test
+    public void readFrom_shouldNotPerformSchemaValidation_whenOnlyOtherAnnotationsArePresent() throws Exception {
+        SchemaLookup schemaLookup = mock(SchemaLookup.class);
+        JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
+        InputStream inputStream = new ByteArrayInputStream("{\"name\": \"fred\"}".getBytes("UTF-8"));
+        Class clazz =  DummyClass.class;
+        Annotation[] annotations = DummyClass.class.getMethod("generateUnrelatedAnnotations", String.class).getParameterAnnotations()[0];
+
+
+        DummyClass result = (DummyClass) provider.readFrom(clazz, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
+
+        assertEquals("fred", result.getName());
         verify(schemaLookup, never()).getSchemaURL(anyString());
     }
-    
+
     @Test
-    public void readFrom_shouldValidateAgainstTheSchemaWhenSchemaAnnotationIsPresent() throws Exception {
+    public void readFrom_shouldValidateAgainstTheSchema_whenASchemaAnnotationIsPresent() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         when(schemaLookup.getSchemaURL("someSchema")).thenReturn(this.getClass().getResource("/dummy-class-schema.json"));
         JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
@@ -45,7 +61,7 @@ public class JsonSchemaProviderTest {
     }
     
     @Test
-    public void readFrom_shouldThrowAValidationExceptionWhenTheJsonIsNotValidForTheSchema() throws Exception {
+    public void readFrom_shouldThrowAValidationException_whenTheJsonIsNotValidForTheSchema() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         when(schemaLookup.getSchemaURL("someSchema")).thenReturn(this.getClass().getResource("/dummy-class-schema.json"));
         JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
@@ -60,7 +76,8 @@ public class JsonSchemaProviderTest {
         }
         
     }
-    
+
+    @SuppressWarnings("UnusedDeclaration")
     static class DummyClass {
         String name;
 
@@ -70,7 +87,8 @@ public class JsonSchemaProviderTest {
             return name;
         }
 
-        @SuppressWarnings("UnusedDeclaration")
+        public void generateUnrelatedAnnotations(@PathParam("foo") String foo) {}
+
         public void schemaAnnotation(@Schema("someSchema") String foo) {}
     } 
     
