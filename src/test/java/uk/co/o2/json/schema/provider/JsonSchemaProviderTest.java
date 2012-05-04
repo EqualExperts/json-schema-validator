@@ -1,18 +1,19 @@
 package uk.co.o2.json.schema.provider;
 
 import org.junit.Test;
+import uk.co.o2.json.schema.ErrorMessage;
 
 import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -61,20 +62,49 @@ public class JsonSchemaProviderTest {
     }
     
     @Test
-    public void readFrom_shouldThrowAValidationException_whenTheJsonIsNotValidForTheSchema() throws Exception {
+    public void readFrom_shouldDelegateToGenerateErrorMessageAndThrowAWebApplicationException_whenTheJsonIsNotValidForTheSchema() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         when(schemaLookup.getSchemaURL("someSchema")).thenReturn(this.getClass().getResource("/dummy-class-schema.json"));
-        JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
+
+        final Response expectedErrorMessage = Response.status(400).entity("Error Message").build();
+
+        JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup) {
+            @Override
+            protected Response generateErrorMessage(List<ErrorMessage> validationErrors) {
+                return expectedErrorMessage;
+            }
+        };
+
         InputStream inputStream = new ByteArrayInputStream("{\"name\": \"fred\", \"location\": \"Delaware\"}".getBytes("UTF-8"));
         Annotation[] annotations = DummyClass.class.getMethod("schemaAnnotation", String.class).getParameterAnnotations()[0];
         
         try {
             provider.readFrom((Class) DummyClass.class, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
             fail("should have thrown a validation exception");
-        } catch(ValidationException e) {
-            assertTrue(e.getErrors().containsKey("location"));
+        } catch(WebApplicationException e) {
+            assertSame(expectedErrorMessage, e.getResponse());
         }
-        
+    }
+
+    @Test
+    public void generateErrorMessage_shouldCreateATextErrorDocument() throws Exception {
+        JsonSchemaProvider provider = new JsonSchemaProvider(mock(SchemaLookup.class));
+
+        ErrorMessage errorA = new ErrorMessage("foo.bar", "errorAMessage");
+        ErrorMessage errorB = new ErrorMessage("foo.baz", "errorBMessage");
+        List<ErrorMessage> validationErrors = Arrays.asList(errorA, errorB);
+
+        Response response = provider.generateErrorMessage(validationErrors);
+
+        assertEquals(400, response.getStatus());
+        assertEquals(MediaType.TEXT_PLAIN_TYPE, response.getMetadata().getFirst("Content-Type"));
+
+        String entity = (String) response.getEntity();
+        assertTrue(entity.contains(errorA.getLocation() + ": "));
+        assertTrue(entity.contains(errorA.getMessage()));
+
+        assertTrue(entity.contains(errorB.getLocation() + ": "));
+        assertTrue(entity.contains(errorB.getMessage()));
     }
 
     @SuppressWarnings("UnusedDeclaration")

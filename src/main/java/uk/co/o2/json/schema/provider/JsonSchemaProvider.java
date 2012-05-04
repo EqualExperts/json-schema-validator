@@ -14,8 +14,10 @@ import uk.co.o2.json.schema.SchemaPassThroughCache;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 import java.io.EOFException;
 import java.io.IOException;
@@ -23,9 +25,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
@@ -65,11 +65,7 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
                     return mapper.readValue(jsonNode, mapper.constructType(genericType));
                 }
 
-                Map<String, String> errors = new HashMap<String, String>();
-                for (ErrorMessage error : validationErrors) {
-                    errors.put(error.getLocation(), error.getMessage());
-                }
-                throw new ValidationException(errors);
+                throw new WebApplicationException(generateErrorMessage(validationErrors));
             } catch (final EOFException e) {
                 throw new ValidationException("incompleteInput", e.getMessage());
             } catch (final JsonParseException e) {
@@ -78,7 +74,17 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
         } else {
             return super.readFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
         }
-
     }
 
+    protected Response generateErrorMessage(List<ErrorMessage> validationErrors) {
+        StringBuilder content = new StringBuilder();
+        for (ErrorMessage error : validationErrors) {
+            content.append(error.getLocation());
+            content.append((": "));
+            content.append(error.getMessage());
+            content.append("\n");
+        }
+
+        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN).entity(content.toString()).build();
+    }
 }

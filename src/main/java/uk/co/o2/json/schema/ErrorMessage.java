@@ -11,12 +11,12 @@ public class ErrorMessage {
     private final String location;
     private final String message;
 
-    ErrorMessage(String location, String message) {
+    public ErrorMessage(String location, String message) {
         this.location = location;
         this.message = message;
     }
 
-    ErrorMessage(String locationPrefix, ErrorMessage nestedMessage) {
+    public ErrorMessage(String locationPrefix, ErrorMessage nestedMessage) {
         String separator = nestedMessage.isSeparatorNecessary() ? "." : "";
         this.location = locationPrefix + separator + nestedMessage.location;
         this.message = nestedMessage.message;
