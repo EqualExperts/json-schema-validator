@@ -6,10 +6,17 @@ public class ClasspathSchemaLookup  implements SchemaLookup {
 
     @Override
     public URL getSchemaURL(String schemaLocation) {
-        URL schemaUrl =  this.getClass().getResource(schemaLocation);
+        if (schemaLocation == null) {
+            throw new IllegalArgumentException("schemaLocation cannot be null");
+        }
 
-        if (schemaLocation == null || schemaUrl == null) {
-            throw new RuntimeException("Could not find schema: " + schemaLocation);
+        if (!schemaLocation.startsWith("/")) {
+            schemaLocation = "/" + schemaLocation;
+        }
+
+        URL schemaUrl =  this.getClass().getResource(schemaLocation);
+        if (schemaUrl == null) {
+            throw new IllegalArgumentException("Schema " + schemaLocation + " was not found");
         }
         return schemaUrl;
     }
