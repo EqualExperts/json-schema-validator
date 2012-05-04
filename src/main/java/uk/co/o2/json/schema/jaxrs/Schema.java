@@ -1,4 +1,4 @@
-package uk.co.o2.json.schema.provider;
+package uk.co.o2.json.schema.jaxrs;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

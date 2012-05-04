@@ -1,4 +1,4 @@
-package uk.co.o2.json.schema.provider;
+package uk.co.o2.json.schema.jaxrs;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;

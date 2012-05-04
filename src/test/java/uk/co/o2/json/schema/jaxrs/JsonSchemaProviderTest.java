@@ -1,4 +1,4 @@
-package uk.co.o2.json.schema.provider;
+package uk.co.o2.json.schema.jaxrs;
 
 import org.junit.Test;
 import uk.co.o2.json.schema.ErrorMessage;
