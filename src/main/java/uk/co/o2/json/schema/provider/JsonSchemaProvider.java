@@ -1,9 +1,7 @@
 package uk.co.o2.json.schema.provider;
 
-
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -19,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -41,7 +38,6 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
         this.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     }
 
-
     @Override
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException {
         Schema schemaAnnotation = null;
@@ -53,24 +49,18 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
         }
 
         if (schemaAnnotation != null) {
-            try {
-                ObjectMapper mapper = locateMapper(type, mediaType);
-                JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
-                jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
-                URL schemaLocation = schemaLookup.getSchemaURL(schemaAnnotation.value());
-                JsonSchema jsonSchema = cache.getSchema(schemaLocation);
-                JsonNode jsonNode = mapper.readTree(jp);
-                List<ErrorMessage> validationErrors = jsonSchema.validate(jsonNode);
-                if (validationErrors.isEmpty()) {
-                    return mapper.readValue(jsonNode, mapper.constructType(genericType));
-                }
-
-                throw new WebApplicationException(generateErrorMessage(validationErrors));
-            } catch (final EOFException e) {
-                throw new ValidationException("incompleteInput", e.getMessage());
-            } catch (final JsonParseException e) {
-                throw new ValidationException("parsingError", e.getMessage());
+            ObjectMapper mapper = locateMapper(type, mediaType);
+            JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
+            jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+            URL schemaLocation = schemaLookup.getSchemaURL(schemaAnnotation.value());
+            JsonSchema jsonSchema = cache.getSchema(schemaLocation);
+            JsonNode jsonNode = mapper.readTree(jp);
+            List<ErrorMessage> validationErrors = jsonSchema.validate(jsonNode);
+            if (validationErrors.isEmpty()) {
+                return mapper.readValue(jsonNode, mapper.constructType(genericType));
             }
+
+            throw new WebApplicationException(generateErrorMessage(validationErrors));
         } else {
             return super.readFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
         }
