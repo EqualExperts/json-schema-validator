@@ -1,5 +1,5 @@
 def jacksonVersion="1.9.6"
-def jerseyVersion="1.6"
+def jerseyVersion="1.12"
 def externalDependencies = [
     jackson: [
        jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
