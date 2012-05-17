@@ -1,4 +1,12 @@
-A pure Java JSON Schema Validator
+IMPORTANT NOTE
+=========================================================================================
+This is the original Groovy version of our JSON schema validator. It is provided only
+for academic interest — this version will not be maintained going forward.
+Please use the Java version for production use (the Java version is just as easy
+to use from Groovy, so this shouldn't be a problem). Also, please note the the Groovy
+version doesn't include the JAX-RS integration (the @Schema annotation) that the Java
+version has.
+=========================================================================================
 
 For more information about JSON Schema, see http://json-schema.org/
 

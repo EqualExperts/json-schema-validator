@@ -49,7 +49,7 @@ allprojects {
 
         def srcDirs
         if (!gradle.gradleVersion.startsWith('0.9.')) {
-            srcDirs = sourceSets['main'].allSource.srcDirs
+            srcDirs = sourceSets.main.allSource.srcDirs
         } else {
             srcDirs = sourceSets.main.java.srcDirs
             if (sourceSets.main.hasProperty('groovy')) {
@@ -121,8 +121,7 @@ coberturaReports << {
             coberturaReports.reportInformation.each {
                 it.sourceDirs.each {
                     if (new File(it.toString()).exists()) {
-                        fileset(dir: it, includes: "**/*.java")
-                        fileset(dir: it, includes: "**/*.scala")
+                        fileset(dir: it, includes: "**/*.*")
                     }
                 }
             }

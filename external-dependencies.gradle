@@ -1,22 +1,17 @@
 def jacksonVersion="1.9.6"
-def jerseyVersion="1.6"
 def externalDependencies = [
+    groovy: "org.codehaus.groovy:groovy:1.8.6",
     jackson: [
-       jaxrs: "org.codehaus.jackson:jackson-jaxrs:${jacksonVersion}",
        xc: "org.codehaus.jackson:jackson-xc:${jacksonVersion}",
        core: "org.codehaus.jackson:jackson-core-asl:${jacksonVersion}",
        mapper: "org.codehaus.jackson:jackson-mapper-asl:${jacksonVersion}"
     ],
-    jsr311: "javax.ws.rs:jsr311-api:1.1.1",
+
     ///////////////////////////////////////////////
     //Test dependencies
     ///////////////////////////////////////////////
-    junit: "junit:junit:4.10",
-    mockito:"org.mockito:mockito-all:1.9.0",
-    jersey: [
-        core: "com.sun.jersey:jersey-core:${jerseyVersion}",
-        server: "com.sun.jersey:jersey-server:${jerseyVersion}"
-    ]
+    gmock: [group: 'org.gmock', name: 'gmock', version: '0.8.2', transitive: false],
+    junit: "junit:junit:4.10"
 ]
 
 if (gradle.gradleVersion.startsWith('0.9.')) {

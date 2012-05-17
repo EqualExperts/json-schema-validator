@@ -1,9 +1,7 @@
-apply plugin: "java"
-sourceCompatibility = '1.6'
-targetCompatibility = '1.6'
+apply plugin: "groovy"
 
 allprojects {
-    version = "0.1"
+    version = "0.1g"
     repositories {
         mavenCentral()
     }
@@ -11,9 +9,9 @@ allprojects {
 
 apply from: "external-dependencies.gradle"
 dependencies {
-    compile jackson.xc, jackson.core, jackson.mapper, jackson.jaxrs, jsr311
-    testCompile junit, mockito
-    runtime jersey.core, jersey.server
+    groovy groovy
+    compile jackson.xc, jackson.core, jackson.mapper
+    testCompile junit, gmock
 }
 
 apply from: "ide-support.gradle"
