@@ -1,0 +1,31 @@
+{
+    "type":"object",
+    "additionalProperties":false,
+    "properties":{
+        "myList":{
+            "type":"array",
+            "required":true,
+            "additionalItems":false,
+            "items":{
+                "type":[
+                    "null",
+                    {
+                        "type":"object",
+                        "additionalProperties":false,
+                        "properties":{
+                            "name":{
+                                "type":"string",
+                                "required":true
+                            },
+                            "age":{
+                                "type":"number",
+                                "required":true,
+                                "minimum":0
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
