@@ -256,6 +256,7 @@ class SimpleTypeSchema implements JsonSchema {
             public boolean isValid(JsonNode node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                format.setLenient(false);
                 ParsePosition position = new ParsePosition(0);
 
                 Date result = format.parse(value, position);
@@ -273,6 +274,7 @@ class SimpleTypeSchema implements JsonSchema {
             public boolean isValid(JsonNode node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+                format.setLenient(false);
                 ParsePosition position = new ParsePosition(0);
 
                 Date result = format.parse(value, position);

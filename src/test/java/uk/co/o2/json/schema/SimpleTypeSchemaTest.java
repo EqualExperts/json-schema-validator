@@ -124,10 +124,26 @@ public class SimpleTypeSchemaTest {
 
     @Test
 	public void validate_shouldReturnAnErrorMessage_givenAFormatOfDateTimeAndAStringValueThatIsNotAValidIso8601DateTime() throws Exception {
-        String invalidDateTime = "2011-May-10T165:11:17z";
+        String invalidDateTime = "2011-05-44T11:11:17Z";
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("date-time");
+        JsonNode nodeToValidate = new TextNode(invalidDateTime);
+
+        List<ErrorMessage> result = schema.validate(nodeToValidate);
+
+        assertEquals(1, result.size());
+        assertEquals("", result.get(0).getLocation());
+        assertTrue(result.get(0).getMessage().contains(invalidDateTime));
+        assertTrue(result.get(0).getMessage().contains("date-time"));
+    }
+
+    @Test
+    public void validate_shouldReturnAnErrorMessage_givenAFormatOfDateTimeAndAStringValueThatIsAnAlmostValidIso8601DateTime() throws Exception {
+        String invalidDateTime = "2011-May-10T165:11:17z";
+        SimpleTypeSchema schema = new SimpleTypeSchema();
+        schema.setType(SimpleType.STRING);
+        schema.setFormat("date-time");
         JsonNode nodeToValidate = new TextNode(invalidDateTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
@@ -168,6 +184,22 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("date");
+        JsonNode nodeToValidate = new TextNode(invalidDate);
+
+        List<ErrorMessage> result = schema.validate(nodeToValidate);
+
+        assertEquals(1, result.size());
+        assertEquals("", result.get(0).getLocation());
+        assertTrue( result.get(0).getMessage().contains(invalidDate));
+        assertTrue(result.get(0).getMessage().contains("date"));
+    }
+
+    @Test
+    public void validate_shouldReturnAnErrorMessage_givenAFormatOfDateAndAStringValueThatIsAlmostAValidDate() throws Exception {
+        String invalidDate = "2011-05-44";
+        SimpleTypeSchema schema = new SimpleTypeSchema();
+        schema.setType(SimpleType.STRING);
+        schema.setFormat("date");
         JsonNode nodeToValidate = new TextNode(invalidDate);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
@@ -224,6 +256,22 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("time");
+        JsonNode nodeToValidate = new TextNode(invalidTime);
+
+        List<ErrorMessage> result = schema.validate(nodeToValidate);
+
+        assertEquals(1, result.size());
+        assertEquals("", result.get(0).getLocation());
+        assertTrue(result.get(0).getMessage().contains(invalidTime));
+        assertTrue(result.get(0).getMessage().contains("time"));
+    }
+
+    @Test
+    public void validate_shouldReturnAnErrorMessage_givenAFormatOfTimeAndAStringValueThatIsAlmostAValidTime() throws Exception {
+        String invalidTime = "13:75:47";
+        SimpleTypeSchema schema = new SimpleTypeSchema();
+        schema.setType(SimpleType.STRING);
+        schema.setFormat("time");
         JsonNode nodeToValidate = new TextNode(invalidTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
