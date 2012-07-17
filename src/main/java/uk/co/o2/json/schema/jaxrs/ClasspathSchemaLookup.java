@@ -2,7 +2,7 @@ package uk.co.o2.json.schema.jaxrs;
 
 import java.net.URL;
 
-public class ClasspathSchemaLookup  implements SchemaLookup {
+public class ClasspathSchemaLookup implements SchemaLookup {
 
     @Override
     public URL getSchemaURL(String schemaLocation) {
