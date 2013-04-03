@@ -261,7 +261,12 @@ class SimpleTypeSchema implements JsonSchema {
 
                 Date result = format.parse(value, position);
 
-                return (result != null) && (position.getIndex() == value.length());
+                String[] parts = value.split("-");
+                boolean partLengthsOk = parts.length == 3 && parts[0].length() == 4 &&
+                    parts[1].length() == 2 &&
+                    parts[2].length() == 2;
+
+                return (result != null) && partLengthsOk && (position.getIndex() == value.length());
             }
 
             @Override

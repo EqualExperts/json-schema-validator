@@ -211,6 +211,30 @@ public class SimpleTypeSchemaTest {
     }
 
     @Test
+    public void validate_shouldReturnAnErrorMessage_givenAFormatOfDateAndAStringValueThatDoesNotHaveTheCorrectNumberOfDigits() throws Exception {
+        for(String invalidDate : new String[]{
+            "5-05-22",
+            "95-05-22",
+            "995-05-22",
+            "1995-5-22",
+            "1992-05-2",
+            "1111"
+        }) {
+            SimpleTypeSchema schema = new SimpleTypeSchema();
+            schema.setType(SimpleType.STRING);
+            schema.setFormat("date");
+            JsonNode nodeToValidate = new TextNode(invalidDate);
+
+            List<ErrorMessage> result = schema.validate(nodeToValidate);
+
+            assertEquals("Expected '" + invalidDate + "' to be an invalid format date.", 1, result.size());
+            assertEquals("", result.get(0).getLocation());
+            assertTrue( result.get(0).getMessage().contains(invalidDate));
+            assertTrue(result.get(0).getMessage().contains("date"));
+        }
+    }
+
+    @Test
 	public void validate_shouldReturnAnErrorMessage_givenAFormatOfDateAndAStringValueThatIsAFullDateTime() throws Exception {
         String invalidDate = "2011-05-10T11:47:16Z";
         SimpleTypeSchema schema = new SimpleTypeSchema();
