@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.xml.bind.DatatypeConverter;
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 class SimpleTypeSchema implements JsonSchema {
     private SimpleType type = SimpleType.ANY;
@@ -133,13 +133,13 @@ class SimpleTypeSchema implements JsonSchema {
         if (minLength > 0) {
             String value = type.getValue(node).toString();
             if (value.length() < minLength) {
-                results.add(new ErrorMessage("", "Value '" + node.getTextValue() + "' must be greater or equal to " + minLength + " characters"));
+                results.add(new ErrorMessage("", "Value '" + node.textValue() + "' must be greater or equal to " + minLength + " characters"));
             }
         }
         if (maxLength > 0) {
             String value = type.getValue(node).toString();
             if (value.length() > maxLength) {
-                results.add(new ErrorMessage("", String.format("Value '%s' must be less or equal to %d characters", node.getTextValue(), maxLength)));
+                results.add(new ErrorMessage("", String.format("Value '%s' must be less or equal to %d characters", node.textValue(), maxLength)));
             }
         }
     }
@@ -172,7 +172,7 @@ class SimpleTypeSchema implements JsonSchema {
         if (format != null) {
             FormatValidator formatValidator = formatValidators.get(format);
             if (formatValidator!= null && !formatValidator.isValid(node)) {
-                results.add(new ErrorMessage("", "Value '" + node.getTextValue() + "' is not a valid " + format));
+                results.add(new ErrorMessage("", "Value '" + node.textValue() + "' is not a valid " + format));
             }
         }
     }

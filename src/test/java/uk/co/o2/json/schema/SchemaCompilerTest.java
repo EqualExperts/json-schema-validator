@@ -1,10 +1,10 @@
 package uk.co.o2.json.schema;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Test;
-import org.codehaus.jackson.JsonParseException;
 
 import java.io.File;
 import java.io.FileOutputStream;

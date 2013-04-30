@@ -1,12 +1,12 @@
 package uk.co.o2.json.schema;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 enum SimpleType {
     STRING {
         @Override
         public String getValue(JsonNode node) {
-            return node.getTextValue();
+            return node.textValue();
         }
 
         @Override
@@ -17,7 +17,7 @@ enum SimpleType {
     NUMBER {
         @Override
         public Number getValue(JsonNode node) {
-            return node.getNumberValue();
+            return node.numberValue();
         }
 
         @Override
@@ -28,7 +28,7 @@ enum SimpleType {
     INTEGER {
         @Override
         public Integer getValue(JsonNode node) {
-            return node.getIntValue();
+            return node.intValue();
         }
 
         @Override
@@ -39,7 +39,7 @@ enum SimpleType {
     BOOLEAN {
         @Override
         public Boolean getValue(JsonNode node) {
-            return node.getBooleanValue();
+            return node.booleanValue();
         }
 
         @Override

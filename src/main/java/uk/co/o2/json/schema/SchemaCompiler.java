@@ -5,11 +5,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import uk.co.o2.json.schema.ObjectSchema.Property;
-import org.codehaus.jackson.JsonParseException;
+
 
 class SchemaCompiler {
     private final SchemaPassThroughCache cache;
@@ -78,7 +80,7 @@ class SchemaCompiler {
         if (ref != null) {
             URL referencedSchemaLocation;
             try {
-                referencedSchemaLocation = new URL(currentSchemaLocation, ref.getTextValue());
+                referencedSchemaLocation = new URL(currentSchemaLocation, ref.textValue());
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException("The schema reference is malformed", e);
             }
@@ -120,37 +122,37 @@ class SchemaCompiler {
 
         JsonNode pattern = rawSchema.get("pattern");
         if (pattern != null) {
-            result.setPattern(Pattern.compile(pattern.getTextValue()));
+            result.setPattern(Pattern.compile(pattern.textValue()));
         }
 
         JsonNode minLength = rawSchema.get("minLength");
         if (minLength != null) {
-            result.setMinLength(minLength.getIntValue());
+            result.setMinLength(minLength.intValue());
         }
 
         JsonNode maxLength = rawSchema.get("maxLength");
         if (maxLength != null) {
-            result.setMaxLength(maxLength.getIntValue());
+            result.setMaxLength(maxLength.intValue());
         }
 
         JsonNode minimum = rawSchema.get("minimum");
         if (minimum != null) {
-            result.setMinimum(minimum.getDecimalValue());
+            result.setMinimum(minimum.decimalValue());
         }
 
         JsonNode maximum = rawSchema.get("maximum");
         if (maximum != null) {
-            result.setMaximum(maximum.getDecimalValue());
+            result.setMaximum(maximum.decimalValue());
         }
 
         JsonNode exclusiveMinimum = rawSchema.get("exclusiveMinimum");
         if (exclusiveMinimum != null) {
-            result.setExclusiveMinimum(exclusiveMinimum.getBooleanValue());
+            result.setExclusiveMinimum(exclusiveMinimum.booleanValue());
         }
 
         JsonNode exclusiveMaximum = rawSchema.get("exclusiveMaximum");
         if (exclusiveMaximum != null) {
-            result.setExclusiveMaximum(exclusiveMaximum.getBooleanValue());
+            result.setExclusiveMaximum(exclusiveMaximum.booleanValue());
         }
 
         JsonNode enumeration = rawSchema.get("enumeration");
@@ -164,7 +166,7 @@ class SchemaCompiler {
 
         JsonNode format = rawSchema.get("format");
         if (format!= null) {
-            result.setFormat(format.getTextValue());
+            result.setFormat(format.textValue());
         }
         return result;
     }
@@ -177,11 +179,11 @@ class SchemaCompiler {
         }
         JsonNode rawMinItems = rawSchema.get("minItems");
         if (rawMinItems != null) {
-            result.setMinItems(rawMinItems.getIntValue());
+            result.setMinItems(rawMinItems.intValue());
         }
         JsonNode rawMaxItems = rawSchema.get("maxItems");
         if (rawMaxItems != null) {
-            result.setMaxItems(rawMaxItems.getIntValue());
+            result.setMaxItems(rawMaxItems.intValue());
         }
         return result;
     }
@@ -198,7 +200,7 @@ class SchemaCompiler {
             return;
         }
         if (additionalProperties.isBoolean()) {
-            JsonSchema additionalPropertiesSchema = additionalProperties.getBooleanValue() ? ObjectSchema.ALLOW_ALL_ADDITIONAL_PROPERTIES : ObjectSchema.FORBID_ANY_ADDITIONAL_PROPERTIES;
+            JsonSchema additionalPropertiesSchema = additionalProperties.booleanValue() ? ObjectSchema.ALLOW_ALL_ADDITIONAL_PROPERTIES : ObjectSchema.FORBID_ANY_ADDITIONAL_PROPERTIES;
             schema.setAdditionalProperties(additionalPropertiesSchema);
         } else {
             schema.setAdditionalProperties(parse(additionalProperties, schemaLocation));
@@ -210,7 +212,7 @@ class SchemaCompiler {
             return;
         }
 
-        for (Iterator<String> iterator = rawProperties.getFieldNames(); iterator.hasNext();) {
+        for (Iterator<String> iterator = rawProperties.fieldNames(); iterator.hasNext();) {
             String fieldName = iterator.next();
 
             Property property = new Property();
@@ -221,7 +223,7 @@ class SchemaCompiler {
 
             JsonNode required = nestedSchema.get("required");
             if (required != null) {
-                property.setRequired(required.getBooleanValue());
+                property.setRequired(required.booleanValue());
             }
             
             schema.getProperties().add(property);

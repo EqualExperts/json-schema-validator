@@ -1,11 +1,11 @@
 package uk.co.o2.json.schema.jaxrs;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import uk.co.o2.json.schema.ErrorMessage;
 import uk.co.o2.json.schema.JsonSchema;
 import uk.co.o2.json.schema.SchemaPassThroughCache;
@@ -35,7 +35,7 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
     public JsonSchemaProvider(SchemaLookup schemaLookup) {
         cache = new SchemaPassThroughCache(new JsonFactory(new ObjectMapper()));
         this.schemaLookup = schemaLookup;
-        this.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        this.configure(SerializationFeature.INDENT_OUTPUT, true);
     }
 
     @Override
@@ -50,14 +50,14 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
 
         if (schemaAnnotation != null) {
             ObjectMapper mapper = locateMapper(type, mediaType);
-            JsonParser jp = mapper.getJsonFactory().createJsonParser(entityStream);
+            JsonParser jp = mapper.getFactory().createJsonParser(entityStream);
             jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
             URL schemaLocation = schemaLookup.getSchemaURL(schemaAnnotation.value());
             JsonSchema jsonSchema = cache.getSchema(schemaLocation);
             JsonNode jsonNode = mapper.readTree(jp);
             List<ErrorMessage> validationErrors = jsonSchema.validate(jsonNode);
             if (validationErrors.isEmpty()) {
-                return mapper.readValue(jsonNode, mapper.constructType(genericType));
+                return mapper.reader().withType(mapper.constructType(genericType)).readValue(jsonNode);
             }
 
             throw new WebApplicationException(generateErrorMessage(validationErrors));

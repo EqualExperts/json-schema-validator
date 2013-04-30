@@ -1,6 +1,6 @@
 package uk.co.o2.json.schema;
 
-import org.codehaus.jackson.JsonFactory;
+import com.fasterxml.jackson.core.JsonFactory;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;

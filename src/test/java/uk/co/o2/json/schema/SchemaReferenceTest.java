@@ -1,7 +1,7 @@
 package uk.co.o2.json.schema;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.TextNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.Test;
 
 import java.net.URL;

@@ -3,7 +3,8 @@ package uk.co.o2.json.schema;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import org.codehaus.jackson.JsonFactory;
+
+import com.fasterxml.jackson.core.JsonFactory;
 
 public class SchemaPassThroughCache {
 

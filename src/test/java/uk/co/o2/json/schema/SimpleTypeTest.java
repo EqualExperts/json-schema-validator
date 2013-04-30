@@ -1,15 +1,8 @@
 package uk.co.o2.json.schema;
 
 import org.junit.Test;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.TextNode;
-import org.codehaus.jackson.node.BooleanNode;
-import org.codehaus.jackson.node.BigIntegerNode;
-import org.codehaus.jackson.node.DecimalNode;
-import org.codehaus.jackson.node.DoubleNode;
-import org.codehaus.jackson.node.IntNode;
-import org.codehaus.jackson.node.LongNode;
-import org.codehaus.jackson.node.NullNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

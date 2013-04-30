@@ -1,6 +1,6 @@
 package uk.co.o2.json.schema;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.*;
 
@@ -61,7 +61,7 @@ class ObjectSchema implements JsonSchema {
         }
 
 
-        for (Iterator<Map.Entry<String, JsonNode>> iterator = jsonDocumentToValidate.getFields(); iterator.hasNext();) {
+        for (Iterator<Map.Entry<String, JsonNode>> iterator = jsonDocumentToValidate.fields(); iterator.hasNext();) {
             Map.Entry<String, JsonNode> entry = iterator.next();
             if (!visitedPropertyNames.contains(entry.getKey())) {
                 for (ErrorMessage it : additionalProperties.validate(entry.getValue())) {

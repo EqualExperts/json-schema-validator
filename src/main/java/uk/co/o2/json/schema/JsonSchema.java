@@ -1,6 +1,6 @@
 package uk.co.o2.json.schema;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
 
