@@ -3,7 +3,7 @@ sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
 
 allprojects {
-    version = "0.3"
+    version = "0.4"
     repositories {
         mavenCentral()
     }
@@ -23,4 +23,19 @@ reportCodeCoverageIfEnabled()
 jar {
     from file('LICENSE.txt')
     from file('NOTICE')
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
 }

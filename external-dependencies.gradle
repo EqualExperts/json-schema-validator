@@ -1,4 +1,4 @@
-def jacksonVersion="2.1.4"
+def jacksonVersion="2.2.0"
 def jerseyVersion="1.17"
 def externalDependencies = [
     jackson: [
