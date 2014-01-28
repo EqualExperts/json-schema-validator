@@ -1,25 +1,23 @@
 def jacksonVersion="2.1.4"
 def jerseyVersion="1.17"
-def externalDependencies = [
-    jackson: [
+def jaxRsVersion = "1.1.1"
+ext {
+    jackson = [
        jaxrs: "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jacksonVersion}",
        core: "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}",
        databind: "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    ],
-    jsr311: "javax.ws.rs:jsr311-api:1.1.1",
+    ]
+
+    jsr311 = "javax.ws.rs:jsr311-api:${jaxRsVersion}"
+
+
     ///////////////////////////////////////////////
     //Test dependencies
     ///////////////////////////////////////////////
-    junit: "junit:junit:4.11",
-    mockito:"org.mockito:mockito-all:1.9.5",
-    jersey: [
+    junit = "junit:junit:4.11"
+    mockito = "org.mockito:mockito-all:1.9.5"
+    jersey = [
         core: "com.sun.jersey:jersey-core:${jerseyVersion}",
         server: "com.sun.jersey:jersey-server:${jerseyVersion}"
     ]
-]
-
-if (gradle.gradleVersion.startsWith('0.9.')) {
-    externalDependencies.each { project[it.key] = it.value }
-} else {
-    externalDependencies.each { project.ext[it.key] = it.value }
 }
