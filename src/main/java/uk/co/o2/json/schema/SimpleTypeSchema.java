@@ -25,7 +25,7 @@ class SimpleTypeSchema implements JsonSchema {
 
     @Override
     public List<ErrorMessage> validate(JsonNode node) {
-        List<ErrorMessage> results = new ArrayList<ErrorMessage>();
+        List<ErrorMessage> results = new ArrayList<>();
         if (!type.matches(node)) {
             results.add(new ErrorMessage("", "Invalid type: must be of type " + type.name().toLowerCase()));
         } else {
@@ -311,6 +311,7 @@ class SimpleTypeSchema implements JsonSchema {
             public boolean isValid(JsonNode node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 try {
+                    //noinspection ResultOfMethodCallIgnored
                     Pattern.compile(value);
                     return true;
                 } catch (PatternSyntaxException e) {
