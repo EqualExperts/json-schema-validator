@@ -22,7 +22,7 @@ class ObjectSchema implements JsonSchema {
         }
     };
 
-    private List<Property> properties = new ArrayList<Property>();
+    private List<Property> properties = new ArrayList<>();
     
     List<Property> getProperties() {
         return properties;
@@ -40,11 +40,11 @@ class ObjectSchema implements JsonSchema {
 
     @Override
     public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
-        List<ErrorMessage> results = new ArrayList<ErrorMessage>();
+        List<ErrorMessage> results = new ArrayList<>();
         if (!jsonDocumentToValidate.isObject()) {
             return singleError("", "Invalid type: must be an object");
         }
-        Set<String> visitedPropertyNames = new HashSet<String>();
+        Set<String> visitedPropertyNames = new HashSet<>();
 
         for (Property property : properties) {
             if (!jsonDocumentToValidate.has(property.getName())) {

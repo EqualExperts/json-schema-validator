@@ -21,7 +21,7 @@ class ArraySchema implements JsonSchema {
 
     @Override
     public List<ErrorMessage> validate(JsonNode jsonDocument) {
-        List<ErrorMessage> results = new ArrayList<ErrorMessage>();
+        List<ErrorMessage> results = new ArrayList<>();
         if (!jsonDocument.isArray()) {
             return singleError("", "Invalid type: must be an array");
         }
@@ -41,7 +41,7 @@ class ArraySchema implements JsonSchema {
     }
 
     private List<ErrorMessage> generateNestedErrorMessages(int index, List<ErrorMessage> errorMessages) {
-        List<ErrorMessage> nestedResults = new ArrayList<ErrorMessage>();
+        List<ErrorMessage> nestedResults = new ArrayList<>();
         String pathPrefix = "[" + index + "]";
         for(ErrorMessage error: errorMessages) {
             nestedResults.add(new ErrorMessage(pathPrefix, error));

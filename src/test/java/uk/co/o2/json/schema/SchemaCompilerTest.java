@@ -21,7 +21,7 @@ import static org.junit.Assert.*;
 public class SchemaCompilerTest {
     private static JsonFactory jsonFactory = new JsonFactory(new ObjectMapper());
 
-    private final List<File> filesToDelete = new ArrayList<File>();
+    private final List<File> filesToDelete = new ArrayList<>();
 
     private SchemaPassThroughCache registry = new SchemaPassThroughCache(jsonFactory);
     private SchemaCompiler schemaFactory = new SchemaCompiler(registry, jsonFactory);

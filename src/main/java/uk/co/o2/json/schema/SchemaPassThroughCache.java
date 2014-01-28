@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 
 public class SchemaPassThroughCache {
 
-    final ConcurrentMap<String, JsonSchema> registeredSchemas = new ConcurrentHashMap<String, JsonSchema>();
+    final ConcurrentMap<String, JsonSchema> registeredSchemas = new ConcurrentHashMap<>();
     private SchemaCompilerFactory schemaCompilerFactory;
 
     public SchemaPassThroughCache(JsonFactory factory) {

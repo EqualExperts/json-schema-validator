@@ -16,7 +16,7 @@ import uk.co.o2.json.schema.ObjectSchema.Property;
 class SchemaCompiler {
     private final SchemaPassThroughCache cache;
     private final JsonFactory jsonFactory;
-    private final Queue<ProcessingEntry> schemasToCompile = new LinkedList<ProcessingEntry>();
+    private final Queue<ProcessingEntry> schemasToCompile = new LinkedList<>();
 
     public SchemaCompiler(SchemaPassThroughCache cache, JsonFactory jsonFactory) {
         this.cache = cache;
@@ -25,7 +25,7 @@ class SchemaCompiler {
 
     public JsonSchema parse(URL schemaLocation) {
 
-        List<ProcessedSchemaEntry> compiledSchemasToRegister = new ArrayList<ProcessedSchemaEntry>();
+        List<ProcessedSchemaEntry> compiledSchemasToRegister = new ArrayList<>();
 
         scheduleSchemaForProcessing(schemaLocation);
 
@@ -157,7 +157,7 @@ class SchemaCompiler {
 
         JsonNode enumeration = rawSchema.get("enumeration");
         if (enumeration != null) {
-            List<JsonNode> enumerationValues = new ArrayList<JsonNode>();
+            List<JsonNode> enumerationValues = new ArrayList<>();
             for (JsonNode node : enumeration) {
                 enumerationValues.add(node);
             }
