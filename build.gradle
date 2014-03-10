@@ -6,13 +6,16 @@ allprojects {
     repositories {
         mavenCentral()
     }
+
+    sourceCompatibility = "1.7"
+    targetCompatibility = "1.7"
 }
 
 apply from: "external-dependencies.gradle"
 dependencies {
-    compile jackson.core, jackson.databind, jackson.jaxrs, jsr311
+    compile jsonProcessing, jaxRs
     testCompile junit, mockito
-    runtime jersey.core, jersey.server
+    runtime jersey
 }
 
 apply from: "ide-support.gradle"

@@ -4,14 +4,14 @@ import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import javax.json.JsonReaderFactory;
 
 public class SchemaPassThroughCache {
 
     final ConcurrentMap<String, JsonSchema> registeredSchemas = new ConcurrentHashMap<>();
     private SchemaCompilerFactory schemaCompilerFactory;
 
-    public SchemaPassThroughCache(JsonFactory factory) {
+    public SchemaPassThroughCache(JsonReaderFactory factory) {
         this.schemaCompilerFactory = new SchemaCompilerFactory(this, factory);
     }
 
@@ -40,9 +40,9 @@ public class SchemaPassThroughCache {
     static class SchemaCompilerFactory {
 
         private final SchemaPassThroughCache cache;
-        private final JsonFactory factory;
+        private final JsonReaderFactory factory;
 
-        SchemaCompilerFactory(SchemaPassThroughCache cache, JsonFactory factory) {
+        SchemaCompilerFactory(SchemaPassThroughCache cache, JsonReaderFactory factory) {
             this.cache = cache;
             this.factory = factory;
         }

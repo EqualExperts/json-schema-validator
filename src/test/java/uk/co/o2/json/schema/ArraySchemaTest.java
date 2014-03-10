@@ -1,25 +1,27 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
+import java.io.StringReader;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ArraySchemaTest {
-    private static JsonFactory factory = new JsonFactory(new ObjectMapper());
 
     @Test
     public void validate_shouldEmitAnErrorMessage_givenAJsonObject() throws Exception {
-        JsonNode document = factory.createJsonParser("{\"foo\": \"bar\"}").readValueAsTree();
-
+        JsonReader reader = Json.createReader(new StringReader("{\"foo\": \"bar\"}"));
+        JsonValue jsonObject = reader.readObject();
+        reader.close();
         ArraySchema schema = new ArraySchema();
 
-        List<ErrorMessage> result = schema.validate(document);
+        List<ErrorMessage> result = schema.validate(jsonObject);
 
         assertEquals(1, result.size());
         assertTrue(result.get(0).getMessage().contains("must be an array"));
@@ -27,7 +29,7 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldEmitAnErrorMessage_givenASimpleValue() throws Exception {
-        JsonNode document = factory.createJsonParser("\"foo\"").readValueAsTree();
+        JsonValue document = readValue("[\"foo\"]").getJsonString(0);
 
         ArraySchema schema = new ArraySchema();
 
@@ -44,11 +46,11 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldAllowAnyArrayItem_whenNoItemSchemaIsSpecified() throws Exception {
-        JsonNode document = factory.createJsonParser("[" +
+        JsonValue document = readValue("[" +
             "{\"foo\": \"value1\", \"bar\": 123}," +
             "\"string\"," +
             "{}" +
-        "]").readValueAsTree();
+        "]");
 
         ArraySchema schema = new ArraySchema();
 
@@ -59,11 +61,11 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldValidateAllItemsAndCombineAnyErrorMessages() throws Exception {
-        JsonNode document = factory.createJsonParser("[" +
+        JsonValue document = readValue("[" +
             "{\"foo\": \"value1\", \"bar\": 123}," +
             "{\"foo\": true, \"bar\": \"barValue\"}," +
             "{}" +
-        "]").readValueAsTree();
+        "]");
 
         ArraySchema schema = new ArraySchema();
         schema.setItems(new ObjectSchema() {{
@@ -94,11 +96,11 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldNotReturnErrorMessage_givenNoOfItemsInArrayIsLessThanOrEqualToMaxItems() throws Exception {
-        JsonNode document = factory.createJsonParser("[" +
-            "{\"foo\": \"value1\", \"bar\": 123}," +
-            "\"string\"," +
-            "{}" +
-        "]").readValueAsTree();
+        JsonValue document = readValue("[" +
+                "{\"foo\": \"value1\", \"bar\": 123}," +
+                "\"string\"," +
+                "{}" +
+                "]");
 
         ArraySchema schema = new ArraySchema();
         schema.setMaxItems(4);
@@ -110,11 +112,11 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldReturnErrorMessage_givenNoOfItemsInArrayIsGreaterThanMaxItems() throws Exception {
-        JsonNode document = factory.createJsonParser("[" +
+        JsonValue document = readValue("[" +
             "{\"foo\": \"value1\", \"bar\": 123}," +
             "\"string\"," +
             "{}" +
-        "]").readValueAsTree();
+        "]");
 
         ArraySchema schema = new ArraySchema();
         schema.setMaxItems(2);
@@ -128,11 +130,11 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldNotReturnErrorMessage_givenNoOfItemsInArrayIsGreaterThanOrEqualToMinItems() throws Exception {
-        JsonNode document = factory.createJsonParser("[" +
+        JsonValue document = readValue("[" +
             "{\"foo\": \"value1\", \"bar\": 123}," +
             "\"string\"," +
             "{}" +
-        "]").readValueAsTree();
+        "]");
 
         ArraySchema schema = new ArraySchema();
         schema.setMinItems(2);
@@ -144,11 +146,11 @@ public class ArraySchemaTest {
 
     @Test
     public void validate_shouldReturnErrorMessage_givenNoOfItemsInArrayIsLessThanMinItems() throws Exception {
-        JsonNode document = factory.createJsonParser("[" +
+        JsonValue document = readValue("[" +
             "{\"foo\": \"value1\", \"bar\": 123}," +
             "\"string\"," +
             "{}" +
-        "]").readValueAsTree();
+        "]");
 
         ArraySchema schema = new ArraySchema();
         schema.setMinItems(5);
@@ -158,5 +160,11 @@ public class ArraySchemaTest {
         assertEquals(1, result.size());
         assertEquals("",result.get(0).getLocation());
         assertEquals("Current array size of 3 is less than allowed minimum array size of 5", result.get(0).getMessage());
+    }
+
+    private JsonArray readValue(String rawJson) {
+        try(JsonReader reader = Json.createReader(new StringReader(rawJson))) {
+            return  reader.readArray();
+        }
     }
 }

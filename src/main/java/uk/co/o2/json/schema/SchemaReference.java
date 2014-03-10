@@ -1,7 +1,6 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+import javax.json.JsonValue;
 import java.net.URL;
 import java.util.List;
 
@@ -15,7 +14,7 @@ class SchemaReference implements JsonSchema {
     }
 
     @Override
-    public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
+    public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
         return registry.getSchema(schemaLocation).validate(jsonDocumentToValidate);
     }
 

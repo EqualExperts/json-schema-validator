@@ -4,21 +4,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
+
+import javax.json.Json;
+import javax.json.JsonNumber;
+import javax.json.JsonValue;
+
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SimpleTypeSchemaTest {
-    private static final JsonFactory factory = new JsonFactory(new ObjectMapper());
 
     @Test
 	public void validate_shouldReturnAnErrorMessage_givenAnIncompatibleType() throws Exception {
-        JsonNode document = factory.createJsonParser("\"abc123\"").readValueAsTree();
+        JsonValue document = toJsonString("\"abc123\"");
 
         List<ErrorMessage> result = new SimpleTypeSchema(){{setType(SimpleType.NUMBER);}}.validate(document);
 
@@ -29,7 +29,7 @@ public class SimpleTypeSchemaTest {
 
     @Test
 	public void validate_shouldNotReturnAnErrorMessage_givenACompatibleType() throws Exception {
-        JsonNode document = factory.createJsonParser("12345").readValueAsTree();
+        JsonValue document = toJsonInt(12345);
 
         List<ErrorMessage> result = new SimpleTypeSchema(){{setType(SimpleType.NUMBER);}}.validate(document);
 
@@ -69,7 +69,7 @@ public class SimpleTypeSchemaTest {
         schema.setType(SimpleType.STRING);
         schema.setPattern(null);
 
-        List<ErrorMessage> result = schema.validate(new TextNode("blah"));
+        List<ErrorMessage> result = schema.validate(toJsonString("blah"));
 
         assertEquals(true, result.isEmpty());
     }
@@ -83,7 +83,7 @@ public class SimpleTypeSchemaTest {
         schema.setType(SimpleType.STRING);
         schema.setPattern(expectedRegex);
 
-        JsonNode nodeToValidate = new TextNode(jsonStringValue);
+        JsonValue nodeToValidate = toJsonString(jsonStringValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -99,7 +99,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setPattern(Pattern.compile(".+"));
-        JsonNode nodeToValidate = new TextNode("Anything should match this regex");
+        JsonValue nodeToValidate = toJsonString("Anything should match this regex");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -116,7 +116,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setFormat("date-time");
-        JsonNode nodeToValidate = new TextNode("2011-05-10T11:11:17Z");
+        JsonValue nodeToValidate = toJsonString("2011-05-10T11:11:17Z");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -129,7 +129,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("date-time");
-        JsonNode nodeToValidate = new TextNode(invalidDateTime);
+        JsonValue nodeToValidate = toJsonString(invalidDateTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -145,7 +145,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setFormat("date-time");
-        JsonNode nodeToValidate = new TextNode(invalidDateTime);
+        JsonValue nodeToValidate = toJsonString(invalidDateTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -172,7 +172,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("date");
-        JsonNode nodeToValidate = new TextNode("2011-05-10");
+        JsonValue nodeToValidate = toJsonString("2011-05-10");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -185,7 +185,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("date");
-        JsonNode nodeToValidate = new TextNode(invalidDate);
+        JsonValue nodeToValidate = toJsonString(invalidDate);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -201,7 +201,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setFormat("date");
-        JsonNode nodeToValidate = new TextNode(invalidDate);
+        JsonValue nodeToValidate = toJsonString(invalidDate);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -224,7 +224,7 @@ public class SimpleTypeSchemaTest {
             SimpleTypeSchema schema = new SimpleTypeSchema();
             schema.setType(SimpleType.STRING);
             schema.setFormat("date");
-            JsonNode nodeToValidate = new TextNode(invalidDate);
+            JsonValue nodeToValidate = toJsonString(invalidDate);
 
             List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -241,7 +241,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("date");
-        JsonNode nodeToValidate = new TextNode(invalidDate);
+        JsonValue nodeToValidate = toJsonString(invalidDate);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -268,7 +268,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("time");
-        JsonNode nodeToValidate = new TextNode("13:15:47");
+        JsonValue nodeToValidate = toJsonString("13:15:47");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -281,7 +281,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("time");
-        JsonNode nodeToValidate = new TextNode(invalidTime);
+        JsonValue nodeToValidate = toJsonString(invalidTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -297,7 +297,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setFormat("time");
-        JsonNode nodeToValidate = new TextNode(invalidTime);
+        JsonValue nodeToValidate = toJsonString(invalidTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -313,7 +313,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("time");
-        JsonNode nodeToValidate = new TextNode(invalidTime);
+        JsonValue nodeToValidate = toJsonString(invalidTime);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -341,7 +341,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("regex");
-        JsonNode nodeToValidate = new TextNode(".*");
+        JsonValue nodeToValidate = toJsonString(".*");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -354,7 +354,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("regex");
-        JsonNode nodeToValidate = new TextNode(invalidRegex);
+        JsonValue nodeToValidate = toJsonString(invalidRegex);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -382,7 +382,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("uri");
-        JsonNode nodeToValidate = new TextNode("http://www.example.com");
+        JsonValue nodeToValidate = toJsonString("http://www.example.com");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -395,7 +395,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setFormat("uri");
-        JsonNode nodeToValidate = new TextNode(invalidUri);
+        JsonValue nodeToValidate = toJsonString(invalidUri);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -423,7 +423,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setFormat("custom-format");
 
-        JsonNode nodeToValidate = new TextNode("I am a valid custom-format instance, but it\"s not possible to check");
+        JsonValue nodeToValidate = toJsonString("I am a valid custom-format instance, but it\"s not possible to check");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -435,7 +435,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.NUMBER);
 		schema.setFormat("utc-millisec");
-        JsonNode nodeToValidate = new LongNode(12345L);
+        JsonValue nodeToValidate = Json.createObjectBuilder().add("foo",12345L).build().getJsonNumber("foo");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -447,7 +447,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.INTEGER);
 		schema.setFormat("utc-millisec");
-        JsonNode nodeToValidate = new IntNode(12345);
+        JsonValue nodeToValidate = toJsonInt(12345);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -473,7 +473,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setMaxLength(10);
-        JsonNode nodeToValidate = new TextNode(invalidString);
+        JsonValue nodeToValidate = toJsonString(invalidString);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -490,7 +490,7 @@ public class SimpleTypeSchemaTest {
         schema.setType(SimpleType.NUMBER);
         schema.setMaximum(20);
 
-        JsonNode nodeToValidate = new DoubleNode(20);
+        JsonValue nodeToValidate = toJsonDouble(20d);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -504,7 +504,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setMaxLength(10);
-        JsonNode nodeToValidate = new TextNode("123");
+        JsonValue nodeToValidate = toJsonString("123");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -531,7 +531,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setMinLength(2);
-        JsonNode nodeToValidate = new TextNode(invalidString);
+        JsonValue nodeToValidate = toJsonString(invalidString);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -547,7 +547,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
         schema.setMinLength(2);
-        JsonNode nodeToValidate = new TextNode("12");
+        JsonValue nodeToValidate = toJsonString("12");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -573,7 +573,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.NUMBER);
         schema.setMinimum(2);
-        JsonNode nodeToValidate = new DoubleNode(invalidValue);
+        JsonValue nodeToValidate = toJsonDouble(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -589,7 +589,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.NUMBER);
         schema.setMinimum(2);
-        JsonNode nodeToValidate = new DoubleNode(2.5);
+        JsonValue nodeToValidate = toJsonDouble(2.5);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -600,7 +600,7 @@ public class SimpleTypeSchemaTest {
     @Test
 	public void validate_shouldReturnAnErrorMessage_givenAnIntegerThatIsLessThanAMinimumValue() throws Exception {
         int invalidInt = 1;
-        JsonNode nodeToValidate = new IntNode(invalidInt);
+        JsonValue nodeToValidate = toJsonInt(invalidInt);
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.INTEGER);
         schema.setMinimum(10);
@@ -619,7 +619,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.INTEGER);
 		schema.setMinimum(2);
-        JsonNode nodeToValidate = new IntNode(3);
+        JsonValue nodeToValidate = toJsonInt(3);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -652,7 +652,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.NUMBER);
 		schema.setMaximum(2);
-        JsonNode nodeToValidate = new DoubleNode(invalidValue);
+        JsonValue nodeToValidate = toJsonDouble(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -668,7 +668,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.NUMBER);
 		schema.setMaximum(2);
-        JsonNode nodeToValidate = new DoubleNode(1.5);
+        JsonValue nodeToValidate = toJsonDouble(1.5);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -680,7 +680,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
 		schema.setMaxLength(5);
-        JsonNode nodeToValidate = new TextNode("abcde");
+        JsonValue nodeToValidate = toJsonString("abcde");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -694,7 +694,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.INTEGER);
 		schema.setMaximum(10);
-        JsonNode nodeToValidate = new IntNode(invalidInt);
+        JsonValue nodeToValidate = toJsonInt(invalidInt);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -710,7 +710,7 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.INTEGER);
 		schema.setMaximum(2);
-        JsonNode nodeToValidate = new IntNode(1);
+        JsonValue nodeToValidate = toJsonInt(1);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -744,7 +744,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.INTEGER);
 		schema.setMinimum(11);
 		schema.setExclusiveMinimum(true);
-        JsonNode nodeToValidate = new IntNode(invalidInt);
+        JsonValue nodeToValidate = toJsonInt(invalidInt);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -762,7 +762,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.NUMBER);
 		schema.setMinimum(11.999);
 		schema.setExclusiveMinimum(true);
-        JsonNode nodeToValidate = new DoubleNode(invalidValue);
+        JsonValue nodeToValidate = toJsonDouble(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -779,7 +779,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.NUMBER);
 		schema.setMinimum(11.999);
 		schema.setExclusiveMinimum(true);
-        JsonNode nodeToValidate = new DoubleNode(invalidValue);
+        JsonValue nodeToValidate = toJsonDouble(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -796,7 +796,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.NUMBER);
 		schema.setMinimum(11.999);
 		schema.setExclusiveMinimum(true);
-        JsonNode nodeToValidate = new DoubleNode(validValue);
+        JsonValue nodeToValidate = toJsonDouble(validValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -810,7 +810,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.INTEGER);
 		schema.setMaximum(11);
 		schema.setExclusiveMaximum(true);
-        JsonNode nodeToValidate = new IntNode(invalidInt);
+        JsonValue nodeToValidate = toJsonInt(invalidInt);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -827,7 +827,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.INTEGER);
 		schema.setMaximum(11);
 		schema.setExclusiveMaximum(true);
-        JsonNode nodeToValidate = new IntNode(invalidInt);
+        JsonValue nodeToValidate = toJsonInt(invalidInt);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -844,7 +844,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.INTEGER);
 		schema.setMaximum(11);
 		schema.setExclusiveMaximum(true);
-        JsonNode nodeToValidate = new IntNode(validInt);
+        JsonValue nodeToValidate = toJsonInt(validInt);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -858,7 +858,7 @@ public class SimpleTypeSchemaTest {
 		schema.setType(SimpleType.NUMBER);
 		schema.setMaximum(12);
 		schema.setExclusiveMaximum(true);
-        JsonNode nodeToValidate = new DoubleNode(invalidValue);
+        JsonValue nodeToValidate = toJsonDouble(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -926,7 +926,7 @@ public class SimpleTypeSchemaTest {
         schema.setType(SimpleType.STRING);
 
         try {
-            schema.setEnumeration(Arrays.<JsonNode>asList(new TextNode("A"), new IntNode(4)));
+            schema.setEnumeration(Arrays.asList(toJsonString("A"), toJsonInt(4)));
             fail("Expected an exception");
         } catch (IllegalArgumentException e) {
             //expected
@@ -939,7 +939,7 @@ public class SimpleTypeSchemaTest {
         schema.setType(SimpleType.NULL);
 
         try {
-            schema.setEnumeration(Arrays.<JsonNode>asList(NullNode.getInstance()));
+            schema.setEnumeration(Arrays.asList(JsonValue.NULL));
             fail("Expected an exception");
         } catch (IllegalArgumentException e) {
             //expected
@@ -952,7 +952,7 @@ public class SimpleTypeSchemaTest {
         schema.setType(SimpleType.ANY);
 
         try {
-            schema.setEnumeration(Arrays.<JsonNode>asList(new TextNode("A")));
+            schema.setEnumeration(Arrays.asList(toJsonString("A")));
             fail("Expected an exception");
         } catch (IllegalArgumentException e) {
             //expected
@@ -964,36 +964,36 @@ public class SimpleTypeSchemaTest {
         SimpleTypeSchema schema = new SimpleTypeSchema();
         schema.setType(SimpleType.STRING);
 
-        schema.setEnumeration(Arrays.<JsonNode>asList(new TextNode("A")));
+        schema.setEnumeration(Arrays.asList(toJsonString("A")));
     }
 
     @Test
 	public void setEnumeration_shouldNotThrowException_givenEnumValuesAreOfTypeNumber() throws Exception {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.NUMBER);
-		schema.setEnumeration(Arrays.<JsonNode>asList(new DoubleNode(10.22)));
+		schema.setEnumeration(Arrays.<JsonValue>asList(toJsonDouble(10.22)));
     }
 
     @Test
 	public void setEnumeration_shouldNotThrowException_givenEnumValuesAreOfTypeInteger() throws Exception {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.INTEGER);
-		schema.setEnumeration(Arrays.<JsonNode>asList(new IntNode(12)));
+		schema.setEnumeration(Arrays.<JsonValue>asList(toJsonInt(12)));
     }
 
     @Test
 	public void setEnumeration_shouldNotThrowException_givenEnumValuesAreOfTypeBoolean() throws Exception {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.BOOLEAN);
-		schema.setEnumeration(Arrays.<JsonNode>asList(BooleanNode.TRUE));
+		schema.setEnumeration(Arrays.asList(JsonValue.TRUE));
     }
 
     @Test
 	public void validate_shouldNotReturnErrorMessage_givenTheValueAreFromEnumerationValuesOfSimpleTypeNumber() throws Exception {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.NUMBER);
-		schema.setEnumeration(Arrays.<JsonNode>asList(new DoubleNode(10.00), new DoubleNode(10.05)));
-        JsonNode nodeToValidate = new DoubleNode(10.05);
+		schema.setEnumeration(Arrays.<JsonValue>asList(toJsonDouble(10.00), toJsonDouble(10.05)));
+        JsonValue nodeToValidate = toJsonDouble(10.05);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -1005,8 +1005,8 @@ public class SimpleTypeSchemaTest {
         double invalidValue = 10.50;
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.NUMBER);
-		schema.setEnumeration(Arrays.<JsonNode>asList(new DoubleNode(10.00), new DoubleNode(10.05)));
-        JsonNode nodeToValidate = new DoubleNode(invalidValue);
+		schema.setEnumeration(Arrays.<JsonValue>asList(toJsonDouble(10.00), toJsonDouble(10.05)));
+        JsonValue nodeToValidate = toJsonDouble(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -1022,8 +1022,8 @@ public class SimpleTypeSchemaTest {
 	public void validate_shouldNotReturnErrorMessage_givenTheValueAreFromEnumerationValuesOfSimpleTypeString() throws Exception {
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
-		schema.setEnumeration(Arrays.<JsonNode>asList(new TextNode("A"), new TextNode("B")));
-        JsonNode nodeToValidate = new TextNode("A");
+		schema.setEnumeration(Arrays.asList(toJsonString("A"), toJsonString("B")));
+        JsonValue nodeToValidate = toJsonString("A");
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -1035,8 +1035,8 @@ public class SimpleTypeSchemaTest {
         String invalidValue = "C";
         SimpleTypeSchema schema = new SimpleTypeSchema();
 		schema.setType(SimpleType.STRING);
-		schema.setEnumeration(Arrays.<JsonNode>asList(new TextNode("A"), new TextNode("B")));
-        JsonNode nodeToValidate = new TextNode(invalidValue);
+		schema.setEnumeration(Arrays.asList(toJsonString("A"), toJsonString("B")));
+        JsonValue nodeToValidate = toJsonString(invalidValue);
 
         List<ErrorMessage> result = schema.validate(nodeToValidate);
 
@@ -1047,4 +1047,17 @@ public class SimpleTypeSchemaTest {
         assertTrue(result.get(0).getMessage().contains("A"));
         assertTrue(result.get(0).getMessage().contains("B"));
     }
+
+    private JsonValue toJsonString(String rawString) {
+        return Json.createObjectBuilder().add("foo", rawString).build().getJsonString("foo");
+    }
+
+    private JsonNumber toJsonInt(int invalidInt) {
+        return Json.createObjectBuilder().add("foo", invalidInt).build().getJsonNumber("foo");
+    }
+
+    private JsonNumber toJsonDouble(double invalidValue) {
+        return Json.createObjectBuilder().add("foo", invalidValue).build().getJsonNumber("foo");
+    }
+
 }

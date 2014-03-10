@@ -1,21 +1,19 @@
 package uk.co.o2.json.schema.jaxrs;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import uk.co.o2.json.schema.ErrorMessage;
 import uk.co.o2.json.schema.JsonSchema;
 import uk.co.o2.json.schema.SchemaPassThroughCache;
 
+import javax.json.Json;
+import javax.json.JsonReader;
+import javax.json.JsonStructure;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,19 +25,28 @@ import java.util.List;
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class JsonSchemaProvider extends JacksonJsonProvider {
+public class JsonSchemaProvider implements MessageBodyReader<JsonStructure> {
 
     private final SchemaPassThroughCache cache;
     private SchemaLookup schemaLookup;
 
     public JsonSchemaProvider(SchemaLookup schemaLookup) {
-        cache = new SchemaPassThroughCache(new JsonFactory(new ObjectMapper()));
+        cache = new SchemaPassThroughCache(Json.createReaderFactory(null));
         this.schemaLookup = schemaLookup;
-        this.configure(SerializationFeature.INDENT_OUTPUT, true);
     }
 
     @Override
-    public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException {
+    public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().equals(Schema.class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public JsonStructure readFrom(Class<JsonStructure> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException {
         Schema schemaAnnotation = null;
         for (Annotation annotation : annotations) {
             if (annotation.annotationType().equals(Schema.class)) {
@@ -49,20 +56,18 @@ public class JsonSchemaProvider extends JacksonJsonProvider {
         }
 
         if (schemaAnnotation != null) {
-            ObjectMapper mapper = locateMapper(type, mediaType);
-            JsonParser jp = mapper.getFactory().createJsonParser(entityStream);
-            jp.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+            JsonReader reader = Json.createReader(entityStream);
             URL schemaLocation = schemaLookup.getSchemaURL(schemaAnnotation.value());
             JsonSchema jsonSchema = cache.getSchema(schemaLocation);
-            JsonNode jsonNode = mapper.readTree(jp);
-            List<ErrorMessage> validationErrors = jsonSchema.validate(jsonNode);
+            JsonStructure jsonStructure = reader.read();
+            List<ErrorMessage> validationErrors = jsonSchema.validate(jsonStructure);
             if (validationErrors.isEmpty()) {
-                return mapper.reader().withType(mapper.constructType(genericType)).readValue(jsonNode);
+                return jsonStructure;
             }
 
             throw new WebApplicationException(generateErrorMessage(validationErrors));
         } else {
-            return super.readFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
+            throw new WebApplicationException(400);
         }
     }
 

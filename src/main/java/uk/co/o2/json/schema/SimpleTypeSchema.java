@@ -8,8 +8,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 import javax.xml.bind.DatatypeConverter;
-import com.fasterxml.jackson.databind.JsonNode;
 
 class SimpleTypeSchema implements JsonSchema {
     private SimpleType type = SimpleType.ANY;
@@ -21,10 +22,10 @@ class SimpleTypeSchema implements JsonSchema {
     private Number maximum;
     private boolean exclusiveMinimum;
     private boolean exclusiveMaximum;
-    private List<JsonNode> enumeration;
+    private List<JsonValue> enumeration;
 
     @Override
-    public List<ErrorMessage> validate(JsonNode node) {
+    public List<ErrorMessage> validate(JsonValue node) {
         List<ErrorMessage> results = new ArrayList<>();
         if (!type.matches(node)) {
             results.add(new ErrorMessage("", "Invalid type: must be of type " + type.name().toLowerCase()));
@@ -38,7 +39,7 @@ class SimpleTypeSchema implements JsonSchema {
         return results;
     }
 
-    void setEnumeration(List<JsonNode> enumeration) {
+    void setEnumeration(List<JsonValue> enumeration) {
         if (EnumSet.of(SimpleType.NULL, SimpleType.ANY).contains(type)) {
             throw new IllegalArgumentException("enumeration not allowed for Null or Any types");
         }
@@ -66,8 +67,8 @@ class SimpleTypeSchema implements JsonSchema {
         this.maximum = maximum;
     }
 
-    private void validateEnumElementsOfSameType(List<JsonNode> values) {
-        for (JsonNode value : values) {
+    private void validateEnumElementsOfSameType(List<JsonValue> values) {
+        for (JsonValue value : values) {
             if (!type.matches(value)) {
                 throw new IllegalArgumentException("values in enum must be of type " + type);
             }
@@ -123,28 +124,28 @@ class SimpleTypeSchema implements JsonSchema {
         }
     }
 
-    private void validateNodeValueIsFromEnumeratedList(JsonNode node, List<ErrorMessage> results) {
+    private void validateNodeValueIsFromEnumeratedList(JsonValue node, List<ErrorMessage> results) {
         if ((enumeration!= null) && !enumeration.contains(node)) {
             results.add(new ErrorMessage("", "Value " + node.toString() + " must be one of: " + enumeration.toString()));
         }
     }
 
-    private void validateLength(JsonNode node, List<ErrorMessage> results) {
+    private void validateLength(JsonValue node, List<ErrorMessage> results) {
         if (minLength > 0) {
             String value = type.getValue(node).toString();
             if (value.length() < minLength) {
-                results.add(new ErrorMessage("", "Value '" + node.textValue() + "' must be greater or equal to " + minLength + " characters"));
+                results.add(new ErrorMessage("", "Value '" + ((JsonString)node).getString() + "' must be greater or equal to " + minLength + " characters"));
             }
         }
         if (maxLength > 0) {
             String value = type.getValue(node).toString();
             if (value.length() > maxLength) {
-                results.add(new ErrorMessage("", String.format("Value '%s' must be less or equal to %d characters", node.textValue(), maxLength)));
+                results.add(new ErrorMessage("", String.format("Value '%s' must be less or equal to %d characters", ((JsonString)node).getString(), maxLength)));
             }
         }
     }
 
-    private void validateRange(JsonNode node, List<ErrorMessage> results) {
+    private void validateRange(JsonValue node, List<ErrorMessage> results) {
         if (this.minimum != null) {
             String nodeValueAsString = type.getValue(node).toString();
             BigDecimal value = new BigDecimal(nodeValueAsString);
@@ -168,16 +169,16 @@ class SimpleTypeSchema implements JsonSchema {
         }
     }
 
-    private void validateFormat(JsonNode node, List<ErrorMessage> results) {
+    private void validateFormat(JsonValue node, List<ErrorMessage> results) {
         if (format != null) {
             FormatValidator formatValidator = formatValidators.get(format);
             if (formatValidator!= null && !formatValidator.isValid(node)) {
-                results.add(new ErrorMessage("", "Value '" + node.textValue() + "' is not a valid " + format));
+                results.add(new ErrorMessage("", "Value '" + ((JsonString)node).getString() + "' is not a valid " + format));
             }
         }
     }
 
-    private void validatePattern(JsonNode node, List<ErrorMessage> results) {
+    private void validatePattern(JsonValue node, List<ErrorMessage> results) {
         if (pattern != null) {
             String value = type.getValue(node).toString();
             if (!pattern.matcher(value).matches()) {
@@ -222,13 +223,13 @@ class SimpleTypeSchema implements JsonSchema {
         return exclusiveMaximum;
     }
 
-    List<JsonNode> getEnumeration() {
+    List<JsonValue> getEnumeration() {
         return enumeration;
     }
 
     private static interface FormatValidator {
 
-        boolean isValid(JsonNode node);
+        boolean isValid(JsonValue node);
         boolean isCompatibleType(SimpleType type);
 
     }
@@ -236,7 +237,7 @@ class SimpleTypeSchema implements JsonSchema {
     private static Map<String, FormatValidator> formatValidators = Collections.unmodifiableMap(new HashMap<String, FormatValidator>() {{
         put("date-time", new FormatValidator() {
             @Override
-            public boolean isValid(JsonNode node) {
+            public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 try {
                     DatatypeConverter.parseDateTime(value);
@@ -253,7 +254,7 @@ class SimpleTypeSchema implements JsonSchema {
         });
         put("date", new FormatValidator() {
             @Override
-            public boolean isValid(JsonNode node) {
+            public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
                 format.setLenient(false);
@@ -278,7 +279,7 @@ class SimpleTypeSchema implements JsonSchema {
         });
         put("time", new FormatValidator() {
             @Override
-            public boolean isValid(JsonNode node) {
+            public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
                 format.setLenient(false);
@@ -296,7 +297,7 @@ class SimpleTypeSchema implements JsonSchema {
         });
         put("utc-millisec", new FormatValidator() {
             @Override
-            public boolean isValid(JsonNode node) {
+            public boolean isValid(JsonValue node) {
                 return true;
             }
 
@@ -308,7 +309,7 @@ class SimpleTypeSchema implements JsonSchema {
         });
         put("regex", new FormatValidator() {
             @Override
-            public boolean isValid(JsonNode node) {
+            public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 try {
                     //noinspection ResultOfMethodCallIgnored
@@ -326,7 +327,7 @@ class SimpleTypeSchema implements JsonSchema {
         });
         put("uri", new FormatValidator() {
             @Override
-            public boolean isValid(JsonNode node) {
+            public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 try {
                     new URI(value);

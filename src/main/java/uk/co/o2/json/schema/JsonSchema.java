@@ -1,9 +1,8 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+import javax.json.JsonValue;
 import java.util.List;
 
 public interface JsonSchema {
-    List<ErrorMessage> validate(JsonNode jsonDocumentToValidate);
+    List<ErrorMessage> validate(JsonValue jsonDocumentToValidate);
 }

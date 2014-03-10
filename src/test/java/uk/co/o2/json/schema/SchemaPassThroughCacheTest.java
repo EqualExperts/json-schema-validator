@@ -1,11 +1,12 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import uk.co.o2.json.schema.SchemaPassThroughCache.SchemaCompilerFactory;
 
+import javax.json.Json;
+import javax.json.JsonReaderFactory;
 import java.net.URL;
 import java.util.concurrent.ConcurrentMap;
 
@@ -16,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SchemaPassThroughCacheTest {
-    private JsonFactory factory = new JsonFactory();
+    private JsonReaderFactory factory = Json.createReaderFactory(null);
     private SchemaPassThroughCache cache = new SchemaPassThroughCache(factory);
 
     @Test

@@ -3,6 +3,7 @@ package uk.co.o2.json.schema.jaxrs;
 import org.junit.Test;
 import uk.co.o2.json.schema.ErrorMessage;
 
+import javax.json.JsonObject;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -20,44 +21,54 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("unchecked")
 public class JsonSchemaProviderTest {
     @Test
-    public void readFrom_shouldNotPerformSchemaValidation_whenNoAnnotationsArePresent() throws Exception {
+    public void isReadable_shouldBeFalse_whenNoAnnotationsArePresent() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
-        InputStream inputStream = new ByteArrayInputStream("{\"name\": \"fred\"}".getBytes("UTF-8"));
         Class clazz =  DummyClass.class;
         
-        DummyClass result = (DummyClass) provider.readFrom(clazz, DummyClass.class, new Annotation[0], MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
+        boolean isReadable = provider.isReadable(clazz, DummyClass.class, new Annotation[0], MediaType.APPLICATION_JSON_TYPE);
         
-        assertEquals("fred", result.getName());
+        assertFalse(isReadable);
         verifyNoMoreInteractions(schemaLookup);
     }
 
     @Test
-    public void readFrom_shouldNotPerformSchemaValidation_whenOnlyOtherAnnotationsArePresent() throws Exception {
+    public void isReadable_shouldBeFalse_whenOnlyOtherAnnotationsArePresent() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
-        InputStream inputStream = new ByteArrayInputStream("{\"name\": \"fred\"}".getBytes("UTF-8"));
         Class clazz =  DummyClass.class;
         Annotation[] annotations = DummyClass.class.getMethod("generateUnrelatedAnnotations", String.class).getParameterAnnotations()[0];
 
 
-        DummyClass result = (DummyClass) provider.readFrom(clazz, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
+        boolean isReadable = provider.isReadable(clazz, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE);
 
-        assertEquals("fred", result.getName());
+        assertFalse(isReadable);
         verify(schemaLookup, never()).getSchemaURL(anyString());
     }
 
     @Test
-    public void readFrom_shouldValidateAgainstTheSchema_whenASchemaAnnotationIsPresent() throws Exception {
+    public void isReadable_shouldBeTrue_whenASchemaAnnotationIsPresent() throws Exception {
+        SchemaLookup schemaLookup = mock(SchemaLookup.class);
+        JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
+        Annotation[] annotations = DummyClass.class.getMethod("schemaAnnotation", String.class).getParameterAnnotations()[0];
+        
+        boolean isReadable = provider.isReadable((Class) DummyClass.class, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE);
+        
+        assertTrue(isReadable);
+        verify(schemaLookup, never()).getSchemaURL(anyString());
+    }
+
+    @Test
+    public void readFrom_shouldValidateAgainstTheSchema() throws Exception {
         SchemaLookup schemaLookup = mock(SchemaLookup.class);
         when(schemaLookup.getSchemaURL("someSchema")).thenReturn(this.getClass().getResource("/dummy-class-schema.json"));
         JsonSchemaProvider provider = new JsonSchemaProvider(schemaLookup);
         InputStream inputStream = new ByteArrayInputStream("{\"name\": \"fred\"}".getBytes("UTF-8"));
         Annotation[] annotations = DummyClass.class.getMethod("schemaAnnotation", String.class).getParameterAnnotations()[0];
-        
-        DummyClass result = (DummyClass) provider.readFrom((Class) DummyClass.class, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
-        
-        assertEquals("fred", result.getName());
+
+        JsonObject result = (JsonObject) provider.readFrom((Class) DummyClass.class, DummyClass.class, annotations, MediaType.APPLICATION_JSON_TYPE, new DummyMultiValueMap<String, String>(), inputStream);
+
+        assertEquals("fred", result.getString("name"));
         verify(schemaLookup).getSchemaURL("someSchema");
     }
     
@@ -135,6 +146,26 @@ public class JsonSchemaProviderTest {
         @Override
         public V getFirst(K key) {
             return null;
+        }
+
+        @Override
+        public void addAll(K key, V... newValues) {
+
+        }
+
+        @Override
+        public void addAll(K key, List<V> valueList) {
+
+        }
+
+        @Override
+        public void addFirst(K key, V value) {
+
+        }
+
+        @Override
+        public boolean equalsIgnoreValueOrder(MultivaluedMap<K, V> otherMap) {
+            return false;
         }
     } 
 }

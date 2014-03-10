@@ -1,26 +1,26 @@
 package uk.co.o2.json.schema;
 
 import org.junit.Test;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.json.Json;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
+import java.io.StringReader;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ObjectSchemaTest {
-    private static JsonFactory factory = new JsonFactory(new ObjectMapper());
 
     @Test
     public void validate_shouldValidateAllPropertiesAndCombineAnyErrorMessages() throws Exception {
-        JsonNode document = factory.createJsonParser("{ " +
+        JsonValue document = readValue("{ " +
             "\"foo\": \"a\"," +
             "\"bar\": {" +
                 "\"baz\": 1 " +
             "}" +
-        "}").readValueAsTree();
+        "}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.getProperties().add(new ObjectSchema.Property() {{
@@ -58,7 +58,7 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldEmitAnErrorMessage_givenAJsonArray() throws Exception {
-        JsonNode document = factory.createJsonParser("[ {\"foo\": \"bar\"} ]").readValueAsTree();
+        JsonValue document = readValue("[ {\"foo\": \"bar\"} ]");
 
         ObjectSchema schema = new ObjectSchema();
 
@@ -70,7 +70,7 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldEmitAnErrorMessage_givenASimpleValue() throws Exception {
-        JsonNode document = factory.createJsonParser("\"foo\"").readValueAsTree();
+        JsonValue document = Json.createObjectBuilder().add("foo", "\"foo\"").build().get("foo");
 
         ObjectSchema schema = new ObjectSchema();
 
@@ -82,7 +82,7 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldReportAnError_whenARequiredPropertyIsMissing() throws Exception {
-        JsonNode document = factory.createJsonParser("{\"foo\": \"bar\"}").readValueAsTree();
+        JsonValue document = readValue("{\"foo\": \"bar\"}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.getProperties().add(new ObjectSchema.Property(){{
@@ -108,7 +108,7 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldNotReportAnError_whenARequiredPropertyIsPresent() throws Exception {
-        JsonNode document = factory.createJsonParser("{\"id\": \"value\", \"foo\": {}}").readValueAsTree();
+        JsonValue document = readValue("{\"id\": \"value\", \"foo\": {}}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.getProperties().add(new ObjectSchema.Property(){{
@@ -128,7 +128,7 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldNotReportAnError_whenANonRequiredPropertyIsNotPresent() throws Exception {
-        JsonNode document = factory.createJsonParser("{\"foo\": \"bar\"}").readValueAsTree();
+        JsonValue document = readValue("{\"foo\": \"bar\"}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.getProperties().add(new ObjectSchema.Property(){{
@@ -148,10 +148,10 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldReportAnError_whenAnAdditionalPropertyIsFoundThatDoesNotConformToSchema() throws Exception {
-        JsonNode document = factory.createJsonParser("{" +
+        JsonValue document = readValue("{" +
             "\"additionalProperty\": \"NotReallyMuchOfANumber\"," +
             "\"additionalProperty2\": \"Also Wrong\"" +
-        "}").readValueAsTree();
+        "}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.setAdditionalProperties(new SimpleTypeSchema(){{
@@ -169,10 +169,10 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldNotReportAnError_whenAnAdditionalPropertyIsFoundAndAllAdditionalPropertiesAreAllowed() throws Exception {
-        JsonNode document = factory.createJsonParser("{" +
+        JsonValue document = readValue("{" +
             "\"additionalProperty\": \"NotReallyMuchOfANumber\"," +
             "\"additionalProperty2\": \"Also Wrong\"" +
-        "}").readValueAsTree();
+        "}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.setAdditionalProperties(ObjectSchema.ALLOW_ALL_ADDITIONAL_PROPERTIES);
@@ -184,9 +184,9 @@ public class ObjectSchemaTest {
 
     @Test
     public void validate_shouldReportAnError_whenAnAdditionalPropertyIsFoundAndNoAdditionalPropertiesAreAllowed() throws Exception {
-        JsonNode document = factory.createJsonParser("{" +
+        JsonValue document = readValue("{" +
             "\"additionalProperty\": \"NotReallyMuchOfANumber\"" +
-        "}").readValueAsTree();
+        "}");
 
         ObjectSchema schema = new ObjectSchema();
         schema.setAdditionalProperties(ObjectSchema.FORBID_ANY_ADDITIONAL_PROPERTIES);
@@ -201,5 +201,11 @@ public class ObjectSchemaTest {
     @Test
     public void shouldImplementJsonSchema() throws Exception {
         assertTrue(JsonSchema.class.isAssignableFrom(ObjectSchema.class));
+    }
+
+    private JsonValue readValue(String rawJson) {
+        try (JsonReader reader = Json.createReader(new StringReader(rawJson))) {
+            return reader.read();
+        }
     }
 }

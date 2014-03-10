@@ -1,7 +1,7 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+import javax.json.JsonObject;
+import javax.json.JsonValue;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
@@ -10,14 +10,14 @@ import static uk.co.o2.json.schema.ErrorMessage.singleError;
 class ObjectSchema implements JsonSchema {
     public static final JsonSchema ALLOW_ALL_ADDITIONAL_PROPERTIES = new JsonSchema() {
         @Override
-        public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
+        public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
             return emptyList();
         }
     };
 
     public static final JsonSchema FORBID_ANY_ADDITIONAL_PROPERTIES = new JsonSchema() {
         @Override
-        public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
+        public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
             return singleError("", "Unexpected property");
         }
     };
@@ -39,20 +39,21 @@ class ObjectSchema implements JsonSchema {
     }
 
     @Override
-    public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
+    public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
         List<ErrorMessage> results = new ArrayList<>();
-        if (!jsonDocumentToValidate.isObject()) {
+        if (jsonDocumentToValidate.getValueType() != JsonValue.ValueType.OBJECT) {
             return singleError("", "Invalid type: must be an object");
         }
+        JsonObject jsonObject = (JsonObject) jsonDocumentToValidate;
         Set<String> visitedPropertyNames = new HashSet<>();
 
         for (Property property : properties) {
-            if (!jsonDocumentToValidate.has(property.getName())) {
+            if (!jsonObject.containsKey(property.getName())) {
                 if (property.isRequired()) {
                     results.add(new ErrorMessage(property.getName(), "Missing required property " + property.getName()));
                 }
             } else {
-                JsonNode propertyValue = jsonDocumentToValidate.get(property.getName());
+                JsonValue propertyValue = jsonObject.get(property.getName());
                 for (ErrorMessage nestedMessage : property.getNestedSchema().validate(propertyValue)) {
                     results.add(new ErrorMessage(property.getName(), nestedMessage));
                 }
@@ -61,8 +62,7 @@ class ObjectSchema implements JsonSchema {
         }
 
 
-        for (Iterator<Map.Entry<String, JsonNode>> iterator = jsonDocumentToValidate.fields(); iterator.hasNext();) {
-            Map.Entry<String, JsonNode> entry = iterator.next();
+        for (Map.Entry<String, JsonValue> entry : jsonObject.entrySet()) {
             if (!visitedPropertyNames.contains(entry.getKey())) {
                 for (ErrorMessage it : additionalProperties.validate(entry.getValue())) {
                     results.add(new ErrorMessage(entry.getKey(), it));

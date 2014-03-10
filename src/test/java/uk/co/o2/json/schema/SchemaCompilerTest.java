@@ -1,11 +1,11 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Test;
 
+import javax.json.Json;
+import javax.json.JsonException;
+import javax.json.JsonReaderFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class SchemaCompilerTest {
-    private static JsonFactory jsonFactory = new JsonFactory(new ObjectMapper());
+    private static JsonReaderFactory jsonFactory = Json.createReaderFactory(null);
 
     private final List<File> filesToDelete = new ArrayList<>();
 
@@ -54,7 +54,7 @@ public class SchemaCompilerTest {
         }
         catch (IllegalArgumentException ex){
             assertTrue(ex.getMessage().contains("invalid JSON"));
-            assertTrue(ex.getCause() instanceof JsonParseException);
+            assertTrue(ex.getCause() instanceof JsonException);
         }
     }
 
@@ -550,12 +550,9 @@ public class SchemaCompilerTest {
         schemaFile.deleteOnExit();
         filesToDelete.add(schemaFile);
 
-        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(schemaFile, false), "UTF-8");
-        try {
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(schemaFile, false), "UTF-8")) {
             writer.write(schemaDefinition);
             writer.flush();
-        } finally {
-            writer.close();
         }
 
         return schemaFile;

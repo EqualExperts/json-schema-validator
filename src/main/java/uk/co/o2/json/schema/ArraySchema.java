@@ -1,7 +1,7 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+import javax.json.JsonArray;
+import javax.json.JsonValue;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,21 +20,22 @@ class ArraySchema implements JsonSchema {
     }
 
     @Override
-    public List<ErrorMessage> validate(JsonNode jsonDocument) {
+    public List<ErrorMessage> validate(JsonValue jsonDocument) {
         List<ErrorMessage> results = new ArrayList<>();
-        if (!jsonDocument.isArray()) {
+        if (!jsonDocument.getValueType().equals(JsonValue.ValueType.ARRAY)) {
             return singleError("", "Invalid type: must be an array");
         }
-        if ((maxItems != 0) && (jsonDocument.size() > maxItems)) {
-            return singleError("", "Current array size of %d is greater than allowed maximum array size of %d", jsonDocument.size(), maxItems);
+        JsonArray jsonArray = (JsonArray) jsonDocument;
+        if ((maxItems != 0) && (jsonArray.size() > maxItems)) {
+            return singleError("", "Current array size of %d is greater than allowed maximum array size of %d", jsonArray.size(), maxItems);
         }
 
-        if ((minItems != 0) && (jsonDocument.size() < minItems)) {
-            return singleError("", "Current array size of %d is less than allowed minimum array size of %d", jsonDocument.size(), minItems);
+        if ((minItems != 0) && (jsonArray.size() < minItems)) {
+            return singleError("", "Current array size of %d is less than allowed minimum array size of %d", jsonArray.size(), minItems);
         }
 
         int index = 0;
-        for(JsonNode item : jsonDocument) {
+        for(JsonValue item : jsonArray) {
             results.addAll(generateNestedErrorMessages(index++, items.validate(item)));
         }
         return results;

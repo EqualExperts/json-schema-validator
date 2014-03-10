@@ -1,9 +1,9 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.Test;
 
+import javax.json.Json;
+import javax.json.JsonValue;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ public class SchemaReferenceTest {
     @Test
     public void validate_shouldLoadAJsonSchemaFromTheRegistryAndDelegateTheValidateCall() throws Exception {
         URL expectedSchemaLocation = new URL("http://www.example.com/");
-        JsonNode expectedDocument = new TextNode("I am a document!!!");
+        JsonValue expectedDocument = Json.createObjectBuilder().add("foo", "I am a document!!!").build().getJsonString("foo");
         List<ErrorMessage> expectedResults = Arrays.asList(new ErrorMessage("foo", "bar"));
 
         JsonSchema mockReferencedSchema = mock(JsonSchema.class);

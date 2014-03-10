@@ -1,76 +1,83 @@
 package uk.co.o2.json.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import javax.json.JsonNumber;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 
 enum SimpleType {
     STRING {
         @Override
-        public String getValue(JsonNode node) {
-            return node.textValue();
+        public String getValue(JsonValue node) {
+            return ((JsonString)node).getString();
         }
 
         @Override
-        public boolean matches(JsonNode node) {
-            return node.isTextual();
+        public boolean matches(JsonValue node) {
+            return node.getValueType() == JsonValue.ValueType.STRING;
         }
     },
     NUMBER {
         @Override
-        public Number getValue(JsonNode node) {
-            return node.numberValue();
+        public Number getValue(JsonValue node) {
+            return ((JsonNumber)node).bigDecimalValue();
         }
 
         @Override
-        public boolean matches(JsonNode node) {
-            return node.isNumber();
+        public boolean matches(JsonValue node) {
+            return node.getValueType() == JsonValue.ValueType.NUMBER;
         }
     },
     INTEGER {
         @Override
-        public Integer getValue(JsonNode node) {
-            return node.intValue();
+        public Integer getValue(JsonValue node) {
+            return ((JsonNumber)node).intValue();
         }
 
         @Override
-        public boolean matches(JsonNode node) {
-            return node.isIntegralNumber();
+        public boolean matches(JsonValue node) {
+            if(node.getValueType() != JsonValue.ValueType.NUMBER) {
+                return false;
+            } else {
+                JsonNumber num = (JsonNumber) node;
+                return num.isIntegral();
+            }
         }
     },
     BOOLEAN {
         @Override
-        public Boolean getValue(JsonNode node) {
-            return node.booleanValue();
+        public Boolean getValue(JsonValue node) {
+            return node.getValueType() == JsonValue.ValueType.TRUE;
         }
 
         @Override
-        public boolean matches(JsonNode node) {
-            return node.isBoolean();
+        public boolean matches(JsonValue node) {
+            return node.getValueType() == JsonValue.ValueType.FALSE || node.getValueType() == JsonValue.ValueType.TRUE;
         }
     },
     NULL {
         @Override
-        public Object getValue(JsonNode node) {
+        public Object getValue(JsonValue node) {
             throw new IllegalStateException("Cannot retrieve the value of a null node");
         }
 
         @Override
-        public boolean matches(JsonNode node) {
-            return node.isNull();
+        public boolean matches(JsonValue node) {
+            return node.getValueType() == JsonValue.ValueType.NULL;
         }
     },
     ANY {
         @Override
-        public Object getValue(JsonNode node) {
+        public Object getValue(JsonValue node) {
             throw new IllegalStateException("Cannot meaningfully retrieve the value of an ANY node, as we don't have enough type information");
         }
 
         @Override
-        public boolean matches(JsonNode node) {
+        public boolean matches(JsonValue node) {
             return true;
         }
     };
 
-    public abstract Object getValue(JsonNode node);
+    public abstract Object getValue(JsonValue node);
 
-    public abstract boolean matches(JsonNode node);
+    public abstract boolean matches(JsonValue node);
 }

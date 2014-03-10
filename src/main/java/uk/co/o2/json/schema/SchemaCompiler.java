@@ -6,19 +6,17 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
 import uk.co.o2.json.schema.ObjectSchema.Property;
+
+import javax.json.*;
 
 
 class SchemaCompiler {
     private final SchemaPassThroughCache cache;
-    private final JsonFactory jsonFactory;
+    private final JsonReaderFactory jsonFactory;
     private final Queue<ProcessingEntry> schemasToCompile = new LinkedList<>();
 
-    public SchemaCompiler(SchemaPassThroughCache cache, JsonFactory jsonFactory) {
+    public SchemaCompiler(SchemaPassThroughCache cache, JsonReaderFactory jsonFactory) {
         this.cache = cache;
         this.jsonFactory = jsonFactory;
     }
@@ -57,30 +55,28 @@ class SchemaCompiler {
         }
 
         try {
-            JsonParser parser = jsonFactory.createJsonParser(schemaLocation);
-            try {
-                JsonNode rawSchema = parser.readValueAsTree();
+            try (JsonReader parser = jsonFactory.createReader(schemaLocation.openStream())) {
+                JsonObject rawSchema = parser.readObject();
                 schemasToCompile.add(new ProcessingEntry(schemaLocation, rawSchema));
-            } finally {
-                parser.close();
             }
-        } catch (JsonParseException jpe) {
+        } catch (JsonException jpe) {
             throw new IllegalArgumentException("The schema at location " + schemaLocation.toString() + " contains invalid JSON", jpe);
         } catch (IOException ioe) {
             throw new IllegalArgumentException("Could not retrieve schema from " + schemaLocation.toString(), ioe);
         }
     }
 
-    private JsonSchema parse(JsonNode rawSchema, URL currentSchemaLocation) {
-        if (!rawSchema.isObject()) {
+    private JsonSchema parse(JsonValue rawSchema, URL currentSchemaLocation) {
+        if (rawSchema.getValueType() != JsonValue.ValueType.OBJECT) {
             throw new IllegalArgumentException("A valid json schema must be an object");
         }
 
-        JsonNode ref = rawSchema.get("$ref");
+        JsonObject jsonSchema = (JsonObject) rawSchema;
+        JsonValue ref = jsonSchema.get("$ref");
         if (ref != null) {
             URL referencedSchemaLocation;
             try {
-                referencedSchemaLocation = new URL(currentSchemaLocation, ref.textValue());
+                referencedSchemaLocation = new URL(currentSchemaLocation, ((JsonString)ref).getString());
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException("The schema reference is malformed", e);
             }
@@ -88,13 +84,13 @@ class SchemaCompiler {
             return new SchemaReference(cache, referencedSchemaLocation);
         }
 
-        String type = rawSchema.get("type").asText();
+        String type = jsonSchema.getString("type");
         if (isSimpleTypeSchema(type)) {
-            return parseSimpleTypeSchema(rawSchema);
+            return parseSimpleTypeSchema(jsonSchema);
         } else if (isObjectSchema(type)) {
-            return parseObjectSchema(rawSchema, currentSchemaLocation);
+            return parseObjectSchema(jsonSchema, currentSchemaLocation);
         } else if (isArraySchema(type)) {
-            return parseArraySchema(rawSchema, currentSchemaLocation);
+            return parseArraySchema(jsonSchema, currentSchemaLocation);
         }
         throw new IllegalArgumentException("Illegal schema type " + type);
     }
@@ -116,114 +112,111 @@ class SchemaCompiler {
         return false;
     }
 
-    private SimpleTypeSchema parseSimpleTypeSchema(JsonNode rawSchema) {
+    private SimpleTypeSchema parseSimpleTypeSchema(JsonObject rawSchema) {
         SimpleTypeSchema result = new SimpleTypeSchema();
-        result.setType(SimpleType.valueOf(rawSchema.get("type").asText().toUpperCase()));
+        result.setType(SimpleType.valueOf(rawSchema.getString("type").toUpperCase()));
 
-        JsonNode pattern = rawSchema.get("pattern");
+        JsonString pattern = rawSchema.getJsonString("pattern");
         if (pattern != null) {
-            result.setPattern(Pattern.compile(pattern.textValue()));
+            result.setPattern(Pattern.compile(pattern.getString()));
         }
 
-        JsonNode minLength = rawSchema.get("minLength");
+        JsonNumber minLength = rawSchema.getJsonNumber("minLength");
         if (minLength != null) {
             result.setMinLength(minLength.intValue());
         }
 
-        JsonNode maxLength = rawSchema.get("maxLength");
+        JsonNumber maxLength = rawSchema.getJsonNumber("maxLength");
         if (maxLength != null) {
             result.setMaxLength(maxLength.intValue());
         }
 
-        JsonNode minimum = rawSchema.get("minimum");
+        JsonNumber minimum = rawSchema.getJsonNumber("minimum");
         if (minimum != null) {
-            result.setMinimum(minimum.decimalValue());
+            result.setMinimum(minimum.bigDecimalValue());
         }
 
-        JsonNode maximum = rawSchema.get("maximum");
+        JsonNumber maximum = rawSchema.getJsonNumber("maximum");
         if (maximum != null) {
-            result.setMaximum(maximum.decimalValue());
+            result.setMaximum(maximum.bigDecimalValue());
         }
 
-        JsonNode exclusiveMinimum = rawSchema.get("exclusiveMinimum");
-        if (exclusiveMinimum != null) {
-            result.setExclusiveMinimum(exclusiveMinimum.booleanValue());
+        if (rawSchema.containsKey("exclusiveMinimum")) {
+            result.setExclusiveMinimum(rawSchema.getBoolean("exclusiveMinimum"));
         }
 
-        JsonNode exclusiveMaximum = rawSchema.get("exclusiveMaximum");
-        if (exclusiveMaximum != null) {
-            result.setExclusiveMaximum(exclusiveMaximum.booleanValue());
+        if (rawSchema.containsKey("exclusiveMaximum")) {
+            result.setExclusiveMaximum(rawSchema.getBoolean("exclusiveMaximum"));
         }
 
-        JsonNode enumeration = rawSchema.get("enumeration");
+        JsonArray enumeration = rawSchema.getJsonArray("enumeration");
         if (enumeration != null) {
-            List<JsonNode> enumerationValues = new ArrayList<>();
-            for (JsonNode node : enumeration) {
+            List<JsonValue> enumerationValues = new ArrayList<>();
+            for (JsonValue node : enumeration) {
                 enumerationValues.add(node);
             }
             result.setEnumeration(enumerationValues);
         }
 
-        JsonNode format = rawSchema.get("format");
+        JsonString format = rawSchema.getJsonString("format");
         if (format!= null) {
-            result.setFormat(format.textValue());
+            result.setFormat(format.getString());
         }
         return result;
     }
 
-    private ArraySchema parseArraySchema(JsonNode rawSchema, URL schemaLocation) {
+    private ArraySchema parseArraySchema(JsonObject rawSchema, URL schemaLocation) {
         ArraySchema result = new ArraySchema();
-        JsonNode rawItems = rawSchema.get("items");
+        JsonValue rawItems = rawSchema.get("items");
         if (rawItems != null) {
             result.setItems(parse(rawItems, schemaLocation));
         }
-        JsonNode rawMinItems = rawSchema.get("minItems");
+        JsonNumber rawMinItems = rawSchema.getJsonNumber("minItems");
         if (rawMinItems != null) {
             result.setMinItems(rawMinItems.intValue());
         }
-        JsonNode rawMaxItems = rawSchema.get("maxItems");
+        JsonNumber rawMaxItems = rawSchema.getJsonNumber("maxItems");
         if (rawMaxItems != null) {
             result.setMaxItems(rawMaxItems.intValue());
         }
         return result;
     }
 
-    private ObjectSchema parseObjectSchema(JsonNode rawSchema, URL schemaLocation) {
+    private ObjectSchema parseObjectSchema(JsonObject rawSchema, URL schemaLocation) {
         ObjectSchema result = new ObjectSchema();
         configureAdditionalPropertiesForObjectSchema(rawSchema.get("additionalProperties"), result, schemaLocation);
-        configurePropertiesForObjectSchema(rawSchema.get("properties"), result, schemaLocation);
+        configurePropertiesForObjectSchema(rawSchema.getJsonObject("properties"), result, schemaLocation);
         return result;
     }
 
-    private void configureAdditionalPropertiesForObjectSchema(JsonNode additionalProperties, ObjectSchema schema, URL schemaLocation) {
+    private void configureAdditionalPropertiesForObjectSchema(JsonValue additionalProperties, ObjectSchema schema, URL schemaLocation) {
         if (additionalProperties == null) {
             return;
         }
-        if (additionalProperties.isBoolean()) {
-            JsonSchema additionalPropertiesSchema = additionalProperties.booleanValue() ? ObjectSchema.ALLOW_ALL_ADDITIONAL_PROPERTIES : ObjectSchema.FORBID_ANY_ADDITIONAL_PROPERTIES;
+        if (additionalProperties.getValueType() == JsonValue.ValueType.TRUE || additionalProperties.getValueType() == JsonValue.ValueType.FALSE) {
+            JsonSchema additionalPropertiesSchema = additionalProperties.getValueType() == JsonValue.ValueType.TRUE ? ObjectSchema.ALLOW_ALL_ADDITIONAL_PROPERTIES : ObjectSchema.FORBID_ANY_ADDITIONAL_PROPERTIES;
             schema.setAdditionalProperties(additionalPropertiesSchema);
         } else {
             schema.setAdditionalProperties(parse(additionalProperties, schemaLocation));
         }
     }
 
-    private void configurePropertiesForObjectSchema(JsonNode rawProperties, ObjectSchema schema, URL schemaLocation) {
+    private void configurePropertiesForObjectSchema(JsonObject rawProperties, ObjectSchema schema, URL schemaLocation) {
         if (rawProperties == null) {
             return;
         }
 
-        for (Iterator<String> iterator = rawProperties.fieldNames(); iterator.hasNext();) {
-            String fieldName = iterator.next();
+        for (String fieldName : rawProperties.keySet()) {
 
             Property property = new Property();
             property.setName(fieldName);
             
-            JsonNode nestedSchema = rawProperties.get(fieldName);
+            JsonObject nestedSchema = rawProperties.getJsonObject(fieldName);
             property.setNestedSchema(parse(nestedSchema, schemaLocation));
 
-            JsonNode required = nestedSchema.get("required");
+            JsonValue required = nestedSchema.get("required");
             if (required != null) {
-                property.setRequired(required.booleanValue());
+                property.setRequired(required.getValueType() == JsonValue.ValueType.TRUE);
             }
             
             schema.getProperties().add(property);
@@ -232,9 +225,9 @@ class SchemaCompiler {
 
     private static class ProcessingEntry {
         final URL schemaLocation;
-        final JsonNode rawSchema;
+        final JsonObject rawSchema;
 
-        ProcessingEntry(URL schemaLocation, JsonNode rawSchema) {
+        ProcessingEntry(URL schemaLocation, JsonObject rawSchema) {
             this.schemaLocation = schemaLocation;
             this.rawSchema = rawSchema;
         }
