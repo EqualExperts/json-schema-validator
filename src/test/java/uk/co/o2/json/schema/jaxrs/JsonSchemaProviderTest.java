@@ -3,6 +3,7 @@ package uk.co.o2.json.schema.jaxrs;
 import org.junit.Test;
 import uk.co.o2.json.schema.ErrorMessage;
 
+import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
@@ -108,14 +109,12 @@ public class JsonSchemaProviderTest {
         Response response = provider.generateErrorMessage(validationErrors);
 
         assertEquals(400, response.getStatus());
-        assertEquals(MediaType.TEXT_PLAIN_TYPE, response.getMetadata().getFirst("Content-Type"));
+        assertEquals(MediaType.APPLICATION_JSON_TYPE, response.getMetadata().getFirst("Content-Type"));
 
-        String entity = (String) response.getEntity();
-        assertTrue(entity.contains(errorA.getLocation() + ": "));
-        assertTrue(entity.contains(errorA.getMessage()));
-
-        assertTrue(entity.contains(errorB.getLocation() + ": "));
-        assertTrue(entity.contains(errorB.getMessage()));
+        JsonObject entity = (JsonObject) response.getEntity();
+        assertEquals(2, entity.getJsonArray("errors").size());
+        assertTrue(entity.getJsonArray("errors").contains(Json.createObjectBuilder().add(errorA.getLocation(), errorA.getMessage()).build()));
+        assertTrue(entity.getJsonArray("errors").contains(Json.createObjectBuilder().add(errorB.getLocation(), errorB.getMessage()).build()));
     }
 
     @SuppressWarnings("UnusedDeclaration")

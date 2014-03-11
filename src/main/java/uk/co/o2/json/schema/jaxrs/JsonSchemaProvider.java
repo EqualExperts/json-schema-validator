@@ -4,11 +4,8 @@ import uk.co.o2.json.schema.ErrorMessage;
 import uk.co.o2.json.schema.JsonSchema;
 import uk.co.o2.json.schema.SchemaPassThroughCache;
 
-import javax.json.Json;
-import javax.json.JsonReader;
-import javax.json.JsonStructure;
+import javax.json.*;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -24,7 +21,6 @@ import java.util.List;
 
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
 public class JsonSchemaProvider implements MessageBodyReader<JsonStructure> {
 
     private final SchemaPassThroughCache cache;
@@ -72,14 +68,11 @@ public class JsonSchemaProvider implements MessageBodyReader<JsonStructure> {
     }
 
     protected Response generateErrorMessage(List<ErrorMessage> validationErrors) {
-        StringBuilder content = new StringBuilder();
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
         for (ErrorMessage error : validationErrors) {
-            content.append(error.getLocation());
-            content.append((": "));
-            content.append(error.getMessage());
-            content.append("\n");
+            arrayBuilder.add(Json.createObjectBuilder().add(error.getLocation(), error.getMessage()));
         }
-
-        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.TEXT_PLAIN).entity(content.toString()).build();
+        JsonObject errors = Json.createObjectBuilder().add("errors", arrayBuilder.build()).build();
+        return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON).entity(errors).build();
     }
 }
