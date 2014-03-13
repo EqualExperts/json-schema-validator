@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import javax.json.JsonString;
 import javax.json.JsonValue;
@@ -236,17 +237,17 @@ class SimpleTypeSchema implements JsonSchema {
     //for format strategies that use parse a string and throw an exception if it doesn't work
     private static class SimpleFormatValidator implements FormatValidator {
 
-        private final ParsingLambda lambda;
+        private final Consumer<String> consumer;
 
-        private SimpleFormatValidator(ParsingLambda lambda) {
-            this.lambda = lambda;
+        private SimpleFormatValidator(Consumer<String> consumer) {
+            this.consumer = consumer;
         }
 
         @Override
         public boolean isValid(JsonValue node) {
             String value = SimpleType.STRING.getValue(node).toString();
             try {
-                lambda.parse(value);
+                consumer.accept(value);
                 return true;
             } catch (Exception ignore) {
                 return false;
@@ -256,10 +257,6 @@ class SimpleTypeSchema implements JsonSchema {
         @Override
         public boolean isCompatibleType(SimpleType type) {
             return type == SimpleType.STRING;
-        }
-
-        private static interface ParsingLambda {
-            public void parse(String s);
         }
     }
 
