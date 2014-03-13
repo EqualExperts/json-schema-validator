@@ -18,6 +18,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Provider
@@ -34,22 +35,17 @@ public class JsonSchemaProvider implements MessageBodyReader<JsonStructure> {
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        return Stream.of(annotations).filter(a -> a.annotationType().equals(Schema.class)).findAny().isPresent();
+        return findSchemaAnnotation(annotations).isPresent();
     }
 
     @Override
     public JsonStructure readFrom(Class<JsonStructure> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException {
-        Schema schemaAnnotation = null;
-        for (Annotation annotation : annotations) {
-            if (annotation.annotationType().equals(Schema.class)) {
-                schemaAnnotation = (Schema) annotation;
-                break;
-            }
-        }
 
-        if (schemaAnnotation != null) {
+        Optional<Schema> schemaAnnotation = findSchemaAnnotation(annotations);
+
+        if (schemaAnnotation.isPresent()) {
             JsonReader reader = Json.createReader(entityStream);
-            URL schemaLocation = schemaLookup.getSchemaURL(schemaAnnotation.value());
+            URL schemaLocation = schemaLookup.getSchemaURL(schemaAnnotation.get().value());
             JsonSchema jsonSchema = cache.getSchema(schemaLocation);
             JsonStructure jsonStructure = reader.read();
             List<ErrorMessage> validationErrors = jsonSchema.validate(jsonStructure);
@@ -63,11 +59,18 @@ public class JsonSchemaProvider implements MessageBodyReader<JsonStructure> {
         }
     }
 
+    private Optional<Schema> findSchemaAnnotation(Annotation[] annotations) {
+        return Stream.of(annotations)
+                .filter(a -> a.annotationType().equals(Schema.class))
+                .map(Schema.class::cast).findAny();
+    }
+
     protected Response generateErrorMessage(List<ErrorMessage> validationErrors) {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        for (ErrorMessage error : validationErrors) {
+        validationErrors.forEach(error -> {
             arrayBuilder.add(Json.createObjectBuilder().add(error.getLocation(), error.getMessage()));
-        }
+        });
+
         JsonObject errors = Json.createObjectBuilder().add("errors", arrayBuilder.build()).build();
         return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON).entity(errors).build();
     }
