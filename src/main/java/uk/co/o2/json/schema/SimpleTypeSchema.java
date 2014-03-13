@@ -226,10 +226,8 @@ class SimpleTypeSchema implements JsonSchema {
     }
 
     private static interface FormatValidator {
-
         boolean isValid(JsonValue node);
         boolean isCompatibleType(SimpleType type);
-
     }
 
     //for format strategies that use parse a string and throw an exception if it doesn't work
@@ -267,6 +265,8 @@ class SimpleTypeSchema implements JsonSchema {
         put("date-time", new SimpleFormatValidator(OffsetDateTime::parse));
         put("date", new SimpleFormatValidator(LocalDate::parse));
         put("time", new SimpleFormatValidator(LocalTime::parse));
+        put("regex", new SimpleFormatValidator(Pattern::compile));
+        put("uri", new SimpleFormatValidator(URI::new));
         put("utc-millisec", new FormatValidator() {
             @Override
             public boolean isValid(JsonValue node) {
@@ -279,7 +279,5 @@ class SimpleTypeSchema implements JsonSchema {
             }
 
         });
-        put("regex", new SimpleFormatValidator(Pattern::compile));
-        put("uri", new SimpleFormatValidator(URI::new));
     }});
 }
