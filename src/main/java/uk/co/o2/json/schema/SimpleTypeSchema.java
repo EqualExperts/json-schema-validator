@@ -2,12 +2,10 @@ package uk.co.o2.json.schema;
 
 import java.math.BigDecimal;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import javax.json.JsonString;
 import javax.json.JsonValue;
@@ -237,17 +235,17 @@ class SimpleTypeSchema implements JsonSchema {
     //for format strategies that use parse a string and throw an exception if it doesn't work
     private static class SimpleFormatValidator implements FormatValidator {
 
-        private final Consumer<String> consumer;
+        private final ValidatorLambda lambda;
 
-        private SimpleFormatValidator(Consumer<String> consumer) {
-            this.consumer = consumer;
+        private SimpleFormatValidator(ValidatorLambda lambda) {
+            this.lambda = lambda;
         }
 
         @Override
         public boolean isValid(JsonValue node) {
             String value = SimpleType.STRING.getValue(node).toString();
             try {
-                consumer.accept(value);
+                lambda.parse(value);
                 return true;
             } catch (Exception ignore) {
                 return false;
@@ -257,6 +255,11 @@ class SimpleTypeSchema implements JsonSchema {
         @Override
         public boolean isCompatibleType(SimpleType type) {
             return type == SimpleType.STRING;
+        }
+
+        @FunctionalInterface
+        private static interface ValidatorLambda {
+            void parse(String value) throws Exception;
         }
     }
 
@@ -277,22 +280,6 @@ class SimpleTypeSchema implements JsonSchema {
 
         });
         put("regex", new SimpleFormatValidator(Pattern::compile));
-        put("uri", new FormatValidator() {
-            @Override
-            public boolean isValid(JsonValue node) {
-                String value = SimpleType.STRING.getValue(node).toString();
-                try {
-                    new URI(value);
-                    return true;
-                } catch (URISyntaxException e) {
-                    return false;
-                }
-            }
-
-            @Override
-            public boolean isCompatibleType(SimpleType type) {
-                return type == SimpleType.STRING;
-            }
-        });
+        put("uri", new SimpleFormatValidator(URI::new));
     }});
 }
