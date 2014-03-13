@@ -5,6 +5,7 @@ import javax.json.JsonValue;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static uk.co.o2.json.schema.ErrorMessage.singleError;
 
 class ArraySchema implements JsonSchema {
@@ -21,7 +22,6 @@ class ArraySchema implements JsonSchema {
 
     @Override
     public List<ErrorMessage> validate(JsonValue jsonDocument) {
-        List<ErrorMessage> results = new ArrayList<>();
         if (!jsonDocument.getValueType().equals(JsonValue.ValueType.ARRAY)) {
             return singleError("", "Invalid type: must be an array");
         }
@@ -35,6 +35,7 @@ class ArraySchema implements JsonSchema {
         }
 
         int index = 0;
+        List<ErrorMessage> results = new ArrayList<>();
         for(JsonValue item : jsonArray) {
             results.addAll(generateNestedErrorMessages(index++, items.validate(item)));
         }
@@ -42,12 +43,10 @@ class ArraySchema implements JsonSchema {
     }
 
     private List<ErrorMessage> generateNestedErrorMessages(int index, List<ErrorMessage> errorMessages) {
-        List<ErrorMessage> nestedResults = new ArrayList<>();
         String pathPrefix = "[" + index + "]";
-        for(ErrorMessage error: errorMessages) {
-            nestedResults.add(new ErrorMessage(pathPrefix, error));
-        }
-        return nestedResults;
+        return errorMessages.stream()
+            .map((error) -> new ErrorMessage(pathPrefix, error))
+            .collect(toList());
     }
 
     void setItems(JsonSchema items) {
