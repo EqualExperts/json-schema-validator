@@ -3,14 +3,15 @@ package uk.co.o2.json.schema;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.json.JsonString;
 import javax.json.JsonValue;
-import javax.xml.bind.DatatypeConverter;
 
 class SimpleTypeSchema implements JsonSchema {
     private SimpleType type = SimpleType.ANY;
@@ -240,9 +241,9 @@ class SimpleTypeSchema implements JsonSchema {
             public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
                 try {
-                    DatatypeConverter.parseDateTime(value);
+                    OffsetDateTime.parse(value);
                     return true;
-                } catch (IllegalArgumentException e) {
+                } catch (DateTimeParseException ignore) {
                     return false;
                 }
             }
@@ -256,20 +257,12 @@ class SimpleTypeSchema implements JsonSchema {
             @Override
             public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                format.setLenient(false);
-                ParsePosition position = new ParsePosition(0);
-
-                Date result = format.parse(value, position);
-
-                String[] parts = value.substring(0, position.getIndex()).split("-");
-                boolean partLengthsOk = parts.length == 3 && parts[0].length() == 4 &&
-                    parts[1].length() == 2 &&
-                    parts[2].length() == 2;
-
-                boolean valueIsTooLongToBeADate = position.getIndex() < value.length();
-
-                return (result != null) && partLengthsOk && (!valueIsTooLongToBeADate);
+                try {
+                    LocalDate.parse(value);
+                    return true;
+                } catch (DateTimeParseException ignore) {
+                    return false;
+                }
             }
 
             @Override
@@ -281,13 +274,12 @@ class SimpleTypeSchema implements JsonSchema {
             @Override
             public boolean isValid(JsonValue node) {
                 String value = SimpleType.STRING.getValue(node).toString();
-                SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-                format.setLenient(false);
-                ParsePosition position = new ParsePosition(0);
-
-                Date result = format.parse(value, position);
-
-                return (result != null) && (position.getIndex() == value.length());
+                try {
+                    LocalTime.parse(value);
+                    return true;
+                } catch (DateTimeParseException ignore) {
+                    return false;
+                }
             }
 
             @Override
