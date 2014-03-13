@@ -116,8 +116,8 @@ class SimpleTypeSchema implements JsonSchema {
     }
 
     private static void validateFormatAndType(String format, SimpleType type) {
-        FormatValidator formatValidator = formatValidators.get(format);
-        if ((formatValidator != null) && (!formatValidator.isCompatibleType(type))) {
+        FormatValidationStrategy validationStrategy = formatValidationStrategies.get(format);
+        if ((validationStrategy != null) && (!validationStrategy.isCompatibleType(type))) {
             throw new IllegalArgumentException("Format " + format + " is not valid for type " + type.name().toLowerCase());
         }
     }
@@ -169,8 +169,8 @@ class SimpleTypeSchema implements JsonSchema {
 
     private void validateFormat(JsonValue node, List<ErrorMessage> results) {
         if (format != null) {
-            FormatValidator formatValidator = formatValidators.get(format);
-            if (formatValidator!= null && !formatValidator.isValid(node)) {
+            FormatValidationStrategy validationStrategy = formatValidationStrategies.get(format);
+            if (validationStrategy != null && !validationStrategy.isValid(node)) {
                 results.add(new ErrorMessage("", "Value '" + ((JsonString)node).getString() + "' is not a valid " + format));
             }
         }
@@ -225,17 +225,17 @@ class SimpleTypeSchema implements JsonSchema {
         return enumeration;
     }
 
-    private static interface FormatValidator {
+    private static interface FormatValidationStrategy {
         boolean isValid(JsonValue node);
         boolean isCompatibleType(SimpleType type);
     }
 
     //for format strategies that use parse a string and throw an exception if it doesn't work
-    private static class SimpleFormatValidator implements FormatValidator {
+    private static class SimpleFormatValidationStrategy implements FormatValidationStrategy {
 
         private final ValidatorLambda lambda;
 
-        private SimpleFormatValidator(ValidatorLambda lambda) {
+        private SimpleFormatValidationStrategy(ValidatorLambda lambda) {
             this.lambda = lambda;
         }
 
@@ -261,13 +261,13 @@ class SimpleTypeSchema implements JsonSchema {
         }
     }
 
-    private static Map<String, FormatValidator> formatValidators = Collections.unmodifiableMap(new HashMap<String, FormatValidator>() {{
-        put("date-time", new SimpleFormatValidator(OffsetDateTime::parse));
-        put("date", new SimpleFormatValidator(LocalDate::parse));
-        put("time", new SimpleFormatValidator(LocalTime::parse));
-        put("regex", new SimpleFormatValidator(Pattern::compile));
-        put("uri", new SimpleFormatValidator(URI::new));
-        put("utc-millisec", new FormatValidator() {
+    private static final Map<String, FormatValidationStrategy> formatValidationStrategies = Collections.unmodifiableMap(new HashMap<String, FormatValidationStrategy>() {{
+        put("date-time", new SimpleFormatValidationStrategy(OffsetDateTime::parse));
+        put("date", new SimpleFormatValidationStrategy(LocalDate::parse));
+        put("time", new SimpleFormatValidationStrategy(LocalTime::parse));
+        put("regex", new SimpleFormatValidationStrategy(Pattern::compile));
+        put("uri", new SimpleFormatValidationStrategy(URI::new));
+        put("utc-millisec", new FormatValidationStrategy() {
             @Override
             public boolean isValid(JsonValue node) {
                 return true;
