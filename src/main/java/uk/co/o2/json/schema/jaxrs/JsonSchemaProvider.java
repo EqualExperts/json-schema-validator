@@ -18,6 +18,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
@@ -33,12 +34,7 @@ public class JsonSchemaProvider implements MessageBodyReader<JsonStructure> {
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-        for (Annotation annotation : annotations) {
-            if (annotation.annotationType().equals(Schema.class)) {
-                return true;
-            }
-        }
-        return false;
+        return Stream.of(annotations).filter(a -> a.annotationType().equals(Schema.class)).findAny().isPresent();
     }
 
     @Override
