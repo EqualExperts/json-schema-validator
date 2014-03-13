@@ -6,10 +6,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 
@@ -235,12 +233,12 @@ class SimpleTypeSchema implements JsonSchema {
 
     }
 
-    //for formats that use java.time parse methods
-    private static class DateTimeFormatValidator implements FormatValidator {
+    //for format strategies that use parse a string and throw an exception if it doesn't work
+    private static class SimpleFormatValidator implements FormatValidator {
 
         private final ParsingLambda lambda;
 
-        private DateTimeFormatValidator(ParsingLambda lambda) {
+        private SimpleFormatValidator(ParsingLambda lambda) {
             this.lambda = lambda;
         }
 
@@ -250,7 +248,7 @@ class SimpleTypeSchema implements JsonSchema {
             try {
                 lambda.parse(value);
                 return true;
-            } catch (DateTimeParseException ignore) {
+            } catch (Exception ignore) {
                 return false;
             }
         }
@@ -261,14 +259,14 @@ class SimpleTypeSchema implements JsonSchema {
         }
 
         private static interface ParsingLambda {
-            public void parse(CharSequence s);
+            public void parse(String s);
         }
     }
 
     private static Map<String, FormatValidator> formatValidators = Collections.unmodifiableMap(new HashMap<String, FormatValidator>() {{
-        put("date-time", new DateTimeFormatValidator(OffsetDateTime::parse));
-        put("date", new DateTimeFormatValidator(LocalDate::parse));
-        put("time", new DateTimeFormatValidator(LocalTime::parse));
+        put("date-time", new SimpleFormatValidator(OffsetDateTime::parse));
+        put("date", new SimpleFormatValidator(LocalDate::parse));
+        put("time", new SimpleFormatValidator(LocalTime::parse));
         put("utc-millisec", new FormatValidator() {
             @Override
             public boolean isValid(JsonValue node) {
@@ -281,24 +279,7 @@ class SimpleTypeSchema implements JsonSchema {
             }
 
         });
-        put("regex", new FormatValidator() {
-            @Override
-            public boolean isValid(JsonValue node) {
-                String value = SimpleType.STRING.getValue(node).toString();
-                try {
-                    //noinspection ResultOfMethodCallIgnored
-                    Pattern.compile(value);
-                    return true;
-                } catch (PatternSyntaxException e) {
-                    return false;
-                }
-            }
-
-            @Override
-            public boolean isCompatibleType(SimpleType type) {
-                return type == SimpleType.STRING;
-            }
-        });
+        put("regex", new SimpleFormatValidator(Pattern::compile));
         put("uri", new FormatValidator() {
             @Override
             public boolean isValid(JsonValue node) {
