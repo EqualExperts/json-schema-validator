@@ -230,7 +230,7 @@ class SimpleTypeSchema implements JsonSchema {
         boolean isCompatibleType(SimpleType type);
     }
 
-    //for format strategies that use parse a string and throw an exception if it doesn't work
+    //for format strategies that use parse a string and throw an exception if the string is invalid
     private static class SimpleFormatValidationStrategy implements FormatValidationStrategy {
 
         private final ValidatorLambda lambda;
