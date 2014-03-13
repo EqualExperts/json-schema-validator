@@ -5,22 +5,13 @@ import javax.json.JsonValue;
 import java.util.*;
 
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toSet;
 import static uk.co.o2.json.schema.ErrorMessage.singleError;
 
 class ObjectSchema implements JsonSchema {
-    public static final JsonSchema ALLOW_ALL_ADDITIONAL_PROPERTIES = new JsonSchema() {
-        @Override
-        public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
-            return emptyList();
-        }
-    };
+    public static final JsonSchema ALLOW_ALL_ADDITIONAL_PROPERTIES = (it) -> emptyList();
 
-    public static final JsonSchema FORBID_ANY_ADDITIONAL_PROPERTIES = new JsonSchema() {
-        @Override
-        public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
-            return singleError("", "Unexpected property");
-        }
-    };
+    public static final JsonSchema FORBID_ANY_ADDITIONAL_PROPERTIES = (it) -> singleError("", "Unexpected property");
 
     private List<Property> properties = new ArrayList<>();
     
@@ -45,30 +36,24 @@ class ObjectSchema implements JsonSchema {
             return singleError("", "Invalid type: must be an object");
         }
         JsonObject jsonObject = (JsonObject) jsonDocumentToValidate;
-        Set<String> visitedPropertyNames = new HashSet<>();
 
-        for (Property property : properties) {
-            if (!jsonObject.containsKey(property.getName())) {
-                if (property.isRequired()) {
-                    results.add(new ErrorMessage(property.getName(), "Missing required property " + property.getName()));
-                }
-            } else {
-                JsonValue propertyValue = jsonObject.get(property.getName());
-                for (ErrorMessage nestedMessage : property.getNestedSchema().validate(propertyValue)) {
-                    results.add(new ErrorMessage(property.getName(), nestedMessage));
-                }
-            }
-            visitedPropertyNames.add(property.getName());
-        }
+        properties.stream()
+                .filter((property) -> !jsonObject.containsKey(property.getName()))
+                .filter(Property::isRequired)
+                .map((property) -> new ErrorMessage(property.getName(), "Missing required property " + property.getName()))
+                .forEach(results::add);
 
+        properties.stream()
+                .filter((property) -> jsonObject.containsKey(property.getName()))
+                .flatMap((property) -> property.getNestedSchema().validate(jsonObject.get(property.getName())).stream().map((it) -> new ErrorMessage(property.getName(), it)))
+                .forEach(results::add);
 
-        for (Map.Entry<String, JsonValue> entry : jsonObject.entrySet()) {
-            if (!visitedPropertyNames.contains(entry.getKey())) {
-                for (ErrorMessage it : additionalProperties.validate(entry.getValue())) {
-                    results.add(new ErrorMessage(entry.getKey(), it));
-                }
-            }
-        }
+        Set<String> visitedPropertyNames = properties.stream().map(Property::getName).collect(toSet());
+
+        jsonObject.entrySet().stream()
+                .filter((e) -> !visitedPropertyNames.contains(e.getKey()))
+                .flatMap((e) -> additionalProperties.validate(e.getValue()).stream().map((it) -> new ErrorMessage(e.getKey(), it)))
+                .forEach(results::add);
 
         return results;
     }
