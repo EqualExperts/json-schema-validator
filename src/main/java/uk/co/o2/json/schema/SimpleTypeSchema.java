@@ -235,58 +235,40 @@ class SimpleTypeSchema implements JsonSchema {
 
     }
 
+    //for formats that use java.time parse methods
+    private static class DateTimeFormatValidator implements FormatValidator {
+
+        private final ParsingLambda lambda;
+
+        private DateTimeFormatValidator(ParsingLambda lambda) {
+            this.lambda = lambda;
+        }
+
+        @Override
+        public boolean isValid(JsonValue node) {
+            String value = SimpleType.STRING.getValue(node).toString();
+            try {
+                lambda.parse(value);
+                return true;
+            } catch (DateTimeParseException ignore) {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean isCompatibleType(SimpleType type) {
+            return type == SimpleType.STRING;
+        }
+
+        private static interface ParsingLambda {
+            public void parse(CharSequence s);
+        }
+    }
+
     private static Map<String, FormatValidator> formatValidators = Collections.unmodifiableMap(new HashMap<String, FormatValidator>() {{
-        put("date-time", new FormatValidator() {
-            @Override
-            public boolean isValid(JsonValue node) {
-                String value = SimpleType.STRING.getValue(node).toString();
-                try {
-                    OffsetDateTime.parse(value);
-                    return true;
-                } catch (DateTimeParseException ignore) {
-                    return false;
-                }
-            }
-
-            @Override
-            public boolean isCompatibleType(SimpleType type) {
-                return type == SimpleType.STRING;
-            }
-        });
-        put("date", new FormatValidator() {
-            @Override
-            public boolean isValid(JsonValue node) {
-                String value = SimpleType.STRING.getValue(node).toString();
-                try {
-                    LocalDate.parse(value);
-                    return true;
-                } catch (DateTimeParseException ignore) {
-                    return false;
-                }
-            }
-
-            @Override
-            public boolean isCompatibleType(SimpleType type) {
-                return type == SimpleType.STRING;
-            }
-        });
-        put("time", new FormatValidator() {
-            @Override
-            public boolean isValid(JsonValue node) {
-                String value = SimpleType.STRING.getValue(node).toString();
-                try {
-                    LocalTime.parse(value);
-                    return true;
-                } catch (DateTimeParseException ignore) {
-                    return false;
-                }
-            }
-
-            @Override
-            public boolean isCompatibleType(SimpleType type) {
-                return type == SimpleType.STRING;
-            }
-        });
+        put("date-time", new DateTimeFormatValidator(OffsetDateTime::parse));
+        put("date", new DateTimeFormatValidator(LocalDate::parse));
+        put("time", new DateTimeFormatValidator(LocalTime::parse));
         put("utc-millisec", new FormatValidator() {
             @Override
             public boolean isValid(JsonValue node) {
