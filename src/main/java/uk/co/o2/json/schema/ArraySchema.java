@@ -45,7 +45,7 @@ class ArraySchema implements JsonSchema {
     private List<ErrorMessage> generateNestedErrorMessages(int index, List<ErrorMessage> errorMessages) {
         String pathPrefix = "[" + index + "]";
         return errorMessages.stream()
-            .map((error) -> new ErrorMessage(pathPrefix, error))
+            .map(error -> new ErrorMessage(pathPrefix, error))
             .collect(toList());
     }
 

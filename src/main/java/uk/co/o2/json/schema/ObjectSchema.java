@@ -38,21 +38,21 @@ class ObjectSchema implements JsonSchema {
         JsonObject jsonObject = (JsonObject) jsonDocumentToValidate;
 
         properties.stream()
-                .filter((property) -> !jsonObject.containsKey(property.getName()))
+                .filter(property -> !jsonObject.containsKey(property.getName()))
                 .filter(Property::isRequired)
-                .map((property) -> new ErrorMessage(property.getName(), "Missing required property " + property.getName()))
+                .map(property -> new ErrorMessage(property.getName(), "Missing required property " + property.getName()))
                 .forEach(results::add);
 
         properties.stream()
-                .filter((property) -> jsonObject.containsKey(property.getName()))
-                .flatMap((property) -> property.getNestedSchema().validate(jsonObject.get(property.getName())).stream().map((it) -> new ErrorMessage(property.getName(), it)))
+                .filter(property -> jsonObject.containsKey(property.getName()))
+                .flatMap(property -> property.getNestedSchema().validate(jsonObject.get(property.getName())).stream().map((it) -> new ErrorMessage(property.getName(), it)))
                 .forEach(results::add);
 
         Set<String> visitedPropertyNames = properties.stream().map(Property::getName).collect(toSet());
 
         jsonObject.entrySet().stream()
-                .filter((e) -> !visitedPropertyNames.contains(e.getKey()))
-                .flatMap((e) -> additionalProperties.validate(e.getValue()).stream().map((it) -> new ErrorMessage(e.getKey(), it)))
+                .filter(e -> !visitedPropertyNames.contains(e.getKey()))
+                .flatMap(e -> additionalProperties.validate(e.getValue()).stream().map(it -> new ErrorMessage(e.getKey(), it)))
                 .forEach(results::add);
 
         return results;
