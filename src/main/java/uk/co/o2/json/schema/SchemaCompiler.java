@@ -158,24 +158,22 @@ class SchemaCompiler {
         return Optional.of(schema.getBoolean(fieldName));
     }
 
+    private static Optional<JsonValue> getJsonValue(JsonObject schema, String fieldName) {
+        Function<String, JsonValue> get = schema::get;
+        return getJsonField(get, fieldName);
+    }
+
     private static <T> Optional<T> getJsonField(Function<String, T> method, String fieldName) {
         return Optional.ofNullable(method.apply(fieldName));
     }
 
     private ArraySchema parseArraySchema(JsonObject rawSchema, URL schemaLocation) {
         ArraySchema result = new ArraySchema();
-        JsonValue rawItems = rawSchema.get("items");
-        if (rawItems != null) {
-            result.setItems(parse(rawItems, schemaLocation));
-        }
-        JsonNumber rawMinItems = rawSchema.getJsonNumber("minItems");
-        if (rawMinItems != null) {
-            result.setMinItems(rawMinItems.intValue());
-        }
-        JsonNumber rawMaxItems = rawSchema.getJsonNumber("maxItems");
-        if (rawMaxItems != null) {
-            result.setMaxItems(rawMaxItems.intValue());
-        }
+
+        getJsonValue(rawSchema, "items").map(it -> parse(it, schemaLocation)).ifPresent(result::setItems);
+        getJsonInteger(rawSchema, "minItems").ifPresent(result::setMinItems);
+        getJsonInteger(rawSchema, "maxItems").ifPresent(result::setMaxItems);
+
         return result;
     }
 
