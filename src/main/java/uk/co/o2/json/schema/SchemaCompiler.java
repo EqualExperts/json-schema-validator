@@ -4,12 +4,12 @@ import uk.co.o2.json.schema.ObjectSchema.Property;
 
 import javax.json.*;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Pattern;
+
+import static uk.co.o2.json.schema.JsonObjectSupport.*;
 
 class SchemaCompiler {
     private final SchemaPassThroughCache cache;
@@ -118,61 +118,25 @@ class SchemaCompiler {
         SimpleTypeSchema result = new SimpleTypeSchema();
         result.setType(SimpleType.valueOf(rawSchema.getString("type").toUpperCase()));
 
-        getJsonString(rawSchema, "pattern").<Pattern>map(Pattern::compile).ifPresent(result::setPattern);
-        getJsonInteger(rawSchema, "minLength").ifPresent(result::setMinLength);
-        getJsonInteger(rawSchema, "maxLength").ifPresent(result::setMaxLength);
-        getJsonBigDecimal(rawSchema, "minimum").ifPresent(result::setMinimum);
-        getJsonBigDecimal(rawSchema, "maximum").ifPresent(result::setMaximum);
-        getJsonBoolean(rawSchema, "exclusiveMinimum").ifPresent(result::setExclusiveMinimum);
-        getJsonBoolean(rawSchema, "exclusiveMaximum").ifPresent(result::setExclusiveMaximum);
-        getJsonArray(rawSchema, "enumeration").<ArrayList>map(ArrayList::new).ifPresent(result::setEnumeration);
-        getJsonString(rawSchema, "format").ifPresent(result::setFormat);
+        getOptionalString(rawSchema, "pattern").<Pattern>map(Pattern::compile).ifPresent(result::setPattern);
+        getOptionalInteger(rawSchema, "minLength").ifPresent(result::setMinLength);
+        getOptionalInteger(rawSchema, "maxLength").ifPresent(result::setMaxLength);
+        getOptionalBigDecimal(rawSchema, "minimum").ifPresent(result::setMinimum);
+        getOptionalBigDecimal(rawSchema, "maximum").ifPresent(result::setMaximum);
+        getOptionalBoolean(rawSchema, "exclusiveMinimum").ifPresent(result::setExclusiveMinimum);
+        getOptionalBoolean(rawSchema, "exclusiveMaximum").ifPresent(result::setExclusiveMaximum);
+        JsonObjectSupport.getOptionalJsonArray(rawSchema, "enumeration").<ArrayList>map(ArrayList::new).ifPresent(result::setEnumeration);
+        getOptionalString(rawSchema, "format").ifPresent(result::setFormat);
 
         return result;
-    }
-
-    private static Optional<String> getJsonString(JsonObject schema, String fieldName) {
-        return getJsonField(schema::getJsonString, fieldName).map(JsonString::getString);
-    }
-
-    private static Optional<JsonArray> getJsonArray(JsonObject schema, String fieldName) {
-        return getJsonField(schema::getJsonArray, fieldName);
-    }
-
-    private static Optional<BigDecimal> getJsonBigDecimal(JsonObject schema, String fieldName) {
-        return getJsonNumber(schema, fieldName).map(JsonNumber::bigDecimalValue);
-    }
-
-    private static Optional<Integer> getJsonInteger(JsonObject schema, String fieldName) {
-        return getJsonNumber(schema, fieldName).map(JsonNumber::intValue);
-    }
-
-    private static Optional<JsonNumber> getJsonNumber(JsonObject schema, String fieldName) {
-        return getJsonField(schema::getJsonNumber, fieldName);
-    }
-
-    private static Optional<Boolean> getJsonBoolean(JsonObject schema, String fieldName) {
-        if (!schema.containsKey(fieldName)) {
-            return Optional.empty();
-        }
-        return Optional.of(schema.getBoolean(fieldName));
-    }
-
-    private static Optional<JsonValue> getJsonValue(JsonObject schema, String fieldName) {
-        Function<String, JsonValue> get = schema::get;
-        return getJsonField(get, fieldName);
-    }
-
-    private static <T> Optional<T> getJsonField(Function<String, T> method, String fieldName) {
-        return Optional.ofNullable(method.apply(fieldName));
     }
 
     private ArraySchema parseArraySchema(JsonObject rawSchema, URL schemaLocation) {
         ArraySchema result = new ArraySchema();
 
-        getJsonValue(rawSchema, "items").map(it -> parse(it, schemaLocation)).ifPresent(result::setItems);
-        getJsonInteger(rawSchema, "minItems").ifPresent(result::setMinItems);
-        getJsonInteger(rawSchema, "maxItems").ifPresent(result::setMaxItems);
+        JsonObjectSupport.getOptionalJsonValue(rawSchema, "items").map(it -> parse(it, schemaLocation)).ifPresent(result::setItems);
+        getOptionalInteger(rawSchema, "minItems").ifPresent(result::setMinItems);
+        getOptionalInteger(rawSchema, "maxItems").ifPresent(result::setMaxItems);
 
         return result;
     }
