@@ -3,6 +3,8 @@ package uk.co.o2.json.schema;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
@@ -31,31 +33,31 @@ class ObjectSchema implements JsonSchema {
 
     @Override
     public List<ErrorMessage> validate(JsonValue jsonDocumentToValidate) {
-        List<ErrorMessage> results = new ArrayList<>();
         if (jsonDocumentToValidate.getValueType() != JsonValue.ValueType.OBJECT) {
             return singleError("", "Invalid type: must be an object");
         }
         JsonObject jsonObject = (JsonObject) jsonDocumentToValidate;
 
-        properties.stream()
+        Stream<ErrorMessage> results;
+
+        results = properties.stream()
                 .filter(property -> !jsonObject.containsKey(property.getName()))
                 .filter(Property::isRequired)
-                .map(property -> new ErrorMessage(property.getName(), "Missing required property " + property.getName()))
-                .forEach(results::add);
+                .map(property -> new ErrorMessage(property.getName(), "Missing required property " + property.getName()));
 
-        properties.stream()
+        results = Stream.concat(results, properties.stream()
                 .filter(property -> jsonObject.containsKey(property.getName()))
                 .flatMap(property -> property.getNestedSchema().validate(jsonObject.get(property.getName())).stream().map((it) -> new ErrorMessage(property.getName(), it)))
-                .forEach(results::add);
+        );
 
         Set<String> visitedPropertyNames = properties.stream().map(Property::getName).collect(toSet());
 
-        jsonObject.entrySet().stream()
+        results = Stream.concat(results, jsonObject.entrySet().stream()
                 .filter(e -> !visitedPropertyNames.contains(e.getKey()))
                 .flatMap(e -> additionalProperties.validate(e.getValue()).stream().map(it -> new ErrorMessage(e.getKey(), it)))
-                .forEach(results::add);
+        );
 
-        return results;
+        return results.collect(Collectors.toList());
     }
 
     static class Property {
