@@ -46,10 +46,8 @@ class SchemaCompiler {
             return; //schema has already been compiled before, or on another thread
         }
 
-        for (ProcessingEntry it : schemasToCompile) {
-            if (it.schemaLocation.toString().equals(schemaLocation.toString())) {
-                return; //schema is already scheduled for compilation
-            }
+        if (isSchemaAlreadyScheduledForCompilation(schemaLocation)) {
+            return;
         }
 
         try {
@@ -62,6 +60,12 @@ class SchemaCompiler {
         } catch (IOException ioe) {
             throw new IllegalArgumentException("Could not retrieve schema from " + schemaLocation.toString(), ioe);
         }
+    }
+
+    private boolean isSchemaAlreadyScheduledForCompilation(URL schemaLocation) {
+        return schemasToCompile.stream()
+                    .filter(it -> it.schemaLocation.toString().equals(schemaLocation.toString()))
+                    .findAny().isPresent();
     }
 
     private JsonSchema parse(JsonValue rawSchema, URL currentSchemaLocation) {
