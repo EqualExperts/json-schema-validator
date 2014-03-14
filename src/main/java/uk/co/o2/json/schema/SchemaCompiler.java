@@ -1,15 +1,15 @@
 package uk.co.o2.json.schema;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
-import java.util.regex.Pattern;
-
 import uk.co.o2.json.schema.ObjectSchema.Property;
 
 import javax.json.*;
-
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.function.Function;
+import java.util.regex.Pattern;
 
 class SchemaCompiler {
     private final SchemaPassThroughCache cache;
@@ -36,9 +36,7 @@ class SchemaCompiler {
             entry = schemasToCompile.peek();
         }
 
-        for (ProcessedSchemaEntry schemaToRegister : compiledSchemasToRegister) {
-            cache.registerSchema(schemaToRegister.schemaLocation, schemaToRegister.compiledSchema);
-        }
+        compiledSchemasToRegister.forEach(it -> cache.registerSchema(it.schemaLocation, it.compiledSchema));
 
         return cache.getSchema(schemaLocation);
     }
@@ -116,53 +114,48 @@ class SchemaCompiler {
         SimpleTypeSchema result = new SimpleTypeSchema();
         result.setType(SimpleType.valueOf(rawSchema.getString("type").toUpperCase()));
 
-        JsonString pattern = rawSchema.getJsonString("pattern");
-        if (pattern != null) {
-            result.setPattern(Pattern.compile(pattern.getString()));
-        }
+        getJsonString(rawSchema, "pattern").<Pattern>map(Pattern::compile).ifPresent(result::setPattern);
+        getJsonInteger(rawSchema, "minLength").ifPresent(result::setMinLength);
+        getJsonInteger(rawSchema, "maxLength").ifPresent(result::setMaxLength);
+        getJsonBigDecimal(rawSchema, "minimum").ifPresent(result::setMinimum);
+        getJsonBigDecimal(rawSchema, "maximum").ifPresent(result::setMaximum);
+        getJsonBoolean(rawSchema, "exclusiveMinimum").ifPresent(result::setExclusiveMinimum);
+        getJsonBoolean(rawSchema, "exclusiveMaximum").ifPresent(result::setExclusiveMaximum);
+        getJsonArray(rawSchema, "enumeration").<ArrayList>map(ArrayList::new).ifPresent(result::setEnumeration);
+        getJsonString(rawSchema, "format").ifPresent(result::setFormat);
 
-        JsonNumber minLength = rawSchema.getJsonNumber("minLength");
-        if (minLength != null) {
-            result.setMinLength(minLength.intValue());
-        }
-
-        JsonNumber maxLength = rawSchema.getJsonNumber("maxLength");
-        if (maxLength != null) {
-            result.setMaxLength(maxLength.intValue());
-        }
-
-        JsonNumber minimum = rawSchema.getJsonNumber("minimum");
-        if (minimum != null) {
-            result.setMinimum(minimum.bigDecimalValue());
-        }
-
-        JsonNumber maximum = rawSchema.getJsonNumber("maximum");
-        if (maximum != null) {
-            result.setMaximum(maximum.bigDecimalValue());
-        }
-
-        if (rawSchema.containsKey("exclusiveMinimum")) {
-            result.setExclusiveMinimum(rawSchema.getBoolean("exclusiveMinimum"));
-        }
-
-        if (rawSchema.containsKey("exclusiveMaximum")) {
-            result.setExclusiveMaximum(rawSchema.getBoolean("exclusiveMaximum"));
-        }
-
-        JsonArray enumeration = rawSchema.getJsonArray("enumeration");
-        if (enumeration != null) {
-            List<JsonValue> enumerationValues = new ArrayList<>();
-            for (JsonValue node : enumeration) {
-                enumerationValues.add(node);
-            }
-            result.setEnumeration(enumerationValues);
-        }
-
-        JsonString format = rawSchema.getJsonString("format");
-        if (format!= null) {
-            result.setFormat(format.getString());
-        }
         return result;
+    }
+
+    private static Optional<String> getJsonString(JsonObject schema, String fieldName) {
+        return getJsonField(schema::getJsonString, fieldName).map(JsonString::getString);
+    }
+
+    private static Optional<JsonArray> getJsonArray(JsonObject schema, String fieldName) {
+        return getJsonField(schema::getJsonArray, fieldName);
+    }
+
+    private static Optional<BigDecimal> getJsonBigDecimal(JsonObject schema, String fieldName) {
+        return getJsonNumber(schema, fieldName).map(JsonNumber::bigDecimalValue);
+    }
+
+    private static Optional<Integer> getJsonInteger(JsonObject schema, String fieldName) {
+        return getJsonNumber(schema, fieldName).map(JsonNumber::intValue);
+    }
+
+    private static Optional<JsonNumber> getJsonNumber(JsonObject schema, String fieldName) {
+        return getJsonField(schema::getJsonNumber, fieldName);
+    }
+
+    private static Optional<Boolean> getJsonBoolean(JsonObject schema, String fieldName) {
+        if (!schema.containsKey(fieldName)) {
+            return Optional.empty();
+        }
+        return Optional.of(schema.getBoolean(fieldName));
+    }
+
+    private static <T> Optional<T> getJsonField(Function<String, T> method, String fieldName) {
+        return Optional.ofNullable(method.apply(fieldName));
     }
 
     private ArraySchema parseArraySchema(JsonObject rawSchema, URL schemaLocation) {
