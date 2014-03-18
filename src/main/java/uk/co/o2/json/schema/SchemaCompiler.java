@@ -64,8 +64,8 @@ class SchemaCompiler {
 
     private boolean isSchemaAlreadyScheduledForCompilation(URL schemaLocation) {
         return schemasToCompile.stream()
-                    .filter(it -> it.schemaLocation.toString().equals(schemaLocation.toString()))
-                    .findAny().isPresent();
+                .filter(it -> it.schemaLocation.toString().equals(schemaLocation.toString()))
+                .findAny().isPresent();
     }
 
     private JsonSchema parse(JsonValue rawSchema, URL currentSchemaLocation) {
