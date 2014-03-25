@@ -125,7 +125,7 @@ class SchemaCompiler {
         getOptionalBigDecimal(rawSchema, "maximum").ifPresent(result::setMaximum);
         getOptionalBoolean(rawSchema, "exclusiveMinimum").ifPresent(result::setExclusiveMinimum);
         getOptionalBoolean(rawSchema, "exclusiveMaximum").ifPresent(result::setExclusiveMaximum);
-        JsonObjectSupport.getOptionalJsonArray(rawSchema, "enumeration").<ArrayList>map(ArrayList::new).ifPresent(result::setEnumeration);
+        getOptionalJsonArray(rawSchema, "enumeration").<ArrayList>map(ArrayList::new).ifPresent(result::setEnumeration);
         getOptionalString(rawSchema, "format").ifPresent(result::setFormat);
 
         return result;
@@ -134,7 +134,7 @@ class SchemaCompiler {
     private ArraySchema parseArraySchema(JsonObject rawSchema, URL schemaLocation) {
         ArraySchema result = new ArraySchema();
 
-        JsonObjectSupport.getOptionalJsonValue(rawSchema, "items").map(it -> parse(it, schemaLocation)).ifPresent(result::setItems);
+        getOptionalJsonValue(rawSchema, "items").map(it -> parse(it, schemaLocation)).ifPresent(result::setItems);
         getOptionalInteger(rawSchema, "minItems").ifPresent(result::setMinItems);
         getOptionalInteger(rawSchema, "maxItems").ifPresent(result::setMaxItems);
 
