@@ -22,7 +22,7 @@ class ArraySchema implements JsonSchema {
     @Override
     public List<ErrorMessage> validate(JsonNode jsonDocument) {
         List<ErrorMessage> results = new ArrayList<>();
-        if (!jsonDocument.isArray()) {
+        if (!isAcceptableType(jsonDocument)) {
             return singleError("", "Invalid type: must be an array");
         }
         if ((maxItems != 0) && (jsonDocument.size() > maxItems)) {
@@ -43,6 +43,11 @@ class ArraySchema implements JsonSchema {
     @Override
     public String getDescription() {
         return "array";
+    }
+
+    @Override
+    public boolean isAcceptableType(JsonNode jsonDocument) {
+        return jsonDocument.isArray();
     }
 
     private List<ErrorMessage> generateNestedErrorMessages(int index, List<ErrorMessage> errorMessages) {

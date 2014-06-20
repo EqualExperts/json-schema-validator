@@ -1,5 +1,7 @@
 package uk.co.o2.json.schema;
 
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.junit.Test;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ObjectSchemaTest {
@@ -210,5 +213,45 @@ public class ObjectSchemaTest {
         String description = schema.getDescription();
 
         assertEquals("object", description);
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnTrue_givenAnObjectNode() throws Exception {
+        JsonNode document = factory.createJsonParser("{}").readValueAsTree();
+        ObjectSchema schema = new ObjectSchema();
+
+        boolean result =  schema.isAcceptableType(document);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnFalse_givenAnArrayNode() throws Exception {
+        JsonNode document = factory.createJsonParser("[]").readValueAsTree();
+        ObjectSchema schema = new ObjectSchema();
+
+        boolean result =  schema.isAcceptableType(document);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnFalse_givenAValueNode() throws Exception {
+        JsonNode document = new IntNode(42);
+        ObjectSchema schema = new ObjectSchema();
+
+        boolean result =  schema.isAcceptableType(document);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnFalse_givenANullNode() throws Exception {
+        JsonNode document = NullNode.getInstance();
+        ObjectSchema schema = new ObjectSchema();
+
+        boolean result =  schema.isAcceptableType(document);
+
+        assertFalse(result);
     }
 }

@@ -9,9 +9,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
 import org.junit.Test;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.*;
 
 public class SimpleTypeSchemaTest {
     private static final JsonFactory factory = new JsonFactory(new ObjectMapper());
@@ -1059,5 +1058,97 @@ public class SimpleTypeSchemaTest {
         nullSchema.setType(SimpleType.NULL);
 
         assertEquals("null", nullSchema.getDescription());
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnAppropriateValuesForTypeString() throws Exception {
+        SimpleTypeSchema stringSchema = new SimpleTypeSchema();
+        stringSchema.setType(SimpleType.STRING);
+
+        assertTrue(stringSchema.isAcceptableType(new TextNode("blah")));
+        assertFalse(stringSchema.isAcceptableType(new IntNode(42)));
+        assertFalse(stringSchema.isAcceptableType(new LongNode(42)));
+        assertFalse(stringSchema.isAcceptableType(BooleanNode.getTrue()));
+        assertFalse(stringSchema.isAcceptableType(NullNode.getInstance()));
+        assertFalse(stringSchema.isAcceptableType(createArrayNode()));
+        assertFalse(stringSchema.isAcceptableType(createObjectNode()));
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnAppropriateValuesForTypeNumber() throws Exception {
+        SimpleTypeSchema numberSchema = new SimpleTypeSchema();
+        numberSchema.setType(SimpleType.NUMBER);
+
+        assertTrue(numberSchema.isAcceptableType(new IntNode(42)));
+        assertTrue(numberSchema.isAcceptableType(new LongNode(42)));
+        assertFalse(numberSchema.isAcceptableType(BooleanNode.getTrue()));
+        assertFalse(numberSchema.isAcceptableType(new TextNode("blah")));
+        assertFalse(numberSchema.isAcceptableType(NullNode.getInstance()));
+        assertFalse(numberSchema.isAcceptableType(createArrayNode()));
+        assertFalse(numberSchema.isAcceptableType(createObjectNode()));
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnAppropriateValuesForTypeInteger() throws Exception {
+        SimpleTypeSchema integerSchema = new SimpleTypeSchema();
+        integerSchema.setType(SimpleType.INTEGER);
+
+        assertTrue(integerSchema.isAcceptableType(new IntNode(42)));
+        assertTrue(integerSchema.isAcceptableType(new LongNode(Long.MAX_VALUE)));
+        assertFalse(integerSchema.isAcceptableType(BooleanNode.getTrue()));
+        assertFalse(integerSchema.isAcceptableType(new TextNode("blah")));
+        assertFalse(integerSchema.isAcceptableType(NullNode.getInstance()));
+        assertFalse(integerSchema.isAcceptableType(createArrayNode()));
+        assertFalse(integerSchema.isAcceptableType(createObjectNode()));
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnAppropriateValuesForTypeBoolean() throws Exception {
+        SimpleTypeSchema booleanSchema = new SimpleTypeSchema();
+        booleanSchema.setType(SimpleType.BOOLEAN);
+
+        assertTrue(booleanSchema.isAcceptableType(BooleanNode.getTrue()));
+        assertFalse(booleanSchema.isAcceptableType(new IntNode(42)));
+        assertFalse(booleanSchema.isAcceptableType(new LongNode(42)));
+        assertFalse(booleanSchema.isAcceptableType(new TextNode("blah")));
+        assertFalse(booleanSchema.isAcceptableType(NullNode.getInstance()));
+        assertFalse(booleanSchema.isAcceptableType(createArrayNode()));
+        assertFalse(booleanSchema.isAcceptableType(createObjectNode()));
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnAppropriateValuesForTypeNull() throws Exception {
+        SimpleTypeSchema nullSchema = new SimpleTypeSchema();
+        nullSchema.setType(SimpleType.NULL);
+
+        assertTrue(nullSchema.isAcceptableType(NullNode.getInstance()));
+        assertFalse(nullSchema.isAcceptableType(BooleanNode.getTrue()));
+        assertFalse(nullSchema.isAcceptableType(new IntNode(42)));
+        assertFalse(nullSchema.isAcceptableType(new LongNode(42)));
+        assertFalse(nullSchema.isAcceptableType(new TextNode("blah")));
+        assertFalse(nullSchema.isAcceptableType(createArrayNode()));
+        assertFalse(nullSchema.isAcceptableType(createObjectNode()));
+    }
+
+    @Test
+    public void isAcceptableType_shouldReturnAppropriateValuesForTypeAny() throws Exception {
+        SimpleTypeSchema anySimpleTypeSchema = new SimpleTypeSchema();
+        anySimpleTypeSchema.setType(SimpleType.ANY);
+
+        assertTrue(anySimpleTypeSchema.isAcceptableType(BooleanNode.getTrue()));
+        assertTrue(anySimpleTypeSchema.isAcceptableType(new IntNode(42)));
+        assertTrue(anySimpleTypeSchema.isAcceptableType(new LongNode(42)));
+        assertTrue(anySimpleTypeSchema.isAcceptableType(new TextNode("blah")));
+        assertTrue(anySimpleTypeSchema.isAcceptableType(NullNode.getInstance()));
+        assertTrue(anySimpleTypeSchema.isAcceptableType(createArrayNode()));
+        assertTrue(anySimpleTypeSchema.isAcceptableType(createObjectNode()));
+    }
+
+    private JsonNode createObjectNode() throws java.io.IOException {
+        return (JsonNode) factory.createJsonParser("{}").readValueAsTree();
+    }
+
+    private JsonNode createArrayNode() throws java.io.IOException {
+        return (JsonNode) factory.createJsonParser("[]").readValueAsTree();
     }
 }

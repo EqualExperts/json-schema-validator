@@ -26,7 +26,7 @@ class SimpleTypeSchema implements JsonSchema {
     @Override
     public List<ErrorMessage> validate(JsonNode node) {
         List<ErrorMessage> results = new ArrayList<>();
-        if (!type.matches(node)) {
+        if (!isAcceptableType(node)) {
             results.add(new ErrorMessage("", "Invalid type: must be of type " + type.name().toLowerCase()));
         } else {
             validatePattern(node, results);
@@ -41,6 +41,11 @@ class SimpleTypeSchema implements JsonSchema {
     @Override
     public String getDescription() {
         return type.toString().toLowerCase();
+    }
+
+    @Override
+    public boolean isAcceptableType(JsonNode node) {
+        return type.matches(node);
     }
 
     void setEnumeration(List<JsonNode> enumeration) {

@@ -7,4 +7,5 @@ import java.util.List;
 public interface JsonSchema {
     List<ErrorMessage> validate(JsonNode jsonDocumentToValidate);
     String getDescription();
+    boolean isAcceptableType(JsonNode jsonDocument);
 }

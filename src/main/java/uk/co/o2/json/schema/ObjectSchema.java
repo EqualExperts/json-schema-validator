@@ -18,6 +18,11 @@ class ObjectSchema implements JsonSchema {
         public String getDescription() {
             return "";
         }
+
+        @Override
+        public boolean isAcceptableType(JsonNode jsonDocument) {
+            return true;
+        }
     };
 
     public static final JsonSchema FORBID_ANY_ADDITIONAL_PROPERTIES = new JsonSchema() {
@@ -29,6 +34,11 @@ class ObjectSchema implements JsonSchema {
         @Override
         public String getDescription() {
             return "";
+        }
+
+        @Override
+        public boolean isAcceptableType(JsonNode jsonDocument) {
+            return false;
         }
     };
 
@@ -51,7 +61,7 @@ class ObjectSchema implements JsonSchema {
     @Override
     public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
         List<ErrorMessage> results = new ArrayList<>();
-        if (!jsonDocumentToValidate.isObject()) {
+        if (!isAcceptableType(jsonDocumentToValidate)) {
             return singleError("", "Invalid type: must be an object");
         }
         Set<String> visitedPropertyNames = new HashSet<>();
@@ -81,6 +91,11 @@ class ObjectSchema implements JsonSchema {
         }
 
         return results;
+    }
+
+    @Override
+    public boolean isAcceptableType(JsonNode jsonDocument) {
+        return jsonDocument.isObject();
     }
 
     @Override

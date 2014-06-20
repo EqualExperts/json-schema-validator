@@ -9,10 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class SchemaReferenceTest {
 
@@ -46,7 +44,7 @@ public class SchemaReferenceTest {
     }
 
     @Test
-    public void getDescription_shouldReturnTheDescriptionOfTheReferencedSchema() throws Exception {
+    public void getDescription_shouldDelegateToTheReferencedSchema() throws Exception {
         URL expectedSchemaLocation = new URL("http://www.example.com/");
         String expectedDescription = "blahBlahBlah";
 
@@ -59,5 +57,24 @@ public class SchemaReferenceTest {
         String description = schema.getDescription();
 
         assertEquals(expectedDescription, description);
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Test
+    public void isAcceptableType_shouldDelegateToTheReferencedSchema() throws Exception {
+        URL expectedSchemaLocation = new URL("http://www.example.com/");
+        JsonNode expectedDocument = new TextNode("I am a document!!!");
+        boolean expectedResult = true;
+
+        JsonSchema mockReferencedSchema = mock(JsonSchema.class);
+        when(mockReferencedSchema.isAcceptableType(expectedDocument)).thenReturn(expectedResult);
+        when(registry.getSchema(expectedSchemaLocation)).thenReturn(mockReferencedSchema);
+
+        JsonSchema schema = new SchemaReference(registry, expectedSchemaLocation);
+
+        boolean result = schema.isAcceptableType(expectedDocument);
+
+        assertEquals(expectedResult, result);
+        verify(mockReferencedSchema).isAcceptableType(expectedDocument);
     }
 }

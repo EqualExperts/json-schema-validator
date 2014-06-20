@@ -16,12 +16,21 @@ class SchemaReference implements JsonSchema {
 
     @Override
     public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
-        return registry.getSchema(schemaLocation).validate(jsonDocumentToValidate);
+        return getReferencedSchema().validate(jsonDocumentToValidate);
     }
 
     @Override
     public String getDescription() {
-        return registry.getSchema(schemaLocation).getDescription();
+        return getReferencedSchema().getDescription();
+    }
+
+    @Override
+    public boolean isAcceptableType(JsonNode jsonDocument) {
+        return getReferencedSchema().isAcceptableType(jsonDocument);
+    }
+
+    private JsonSchema getReferencedSchema() {
+        return registry.getSchema(schemaLocation);
     }
 
     SchemaPassThroughCache getRegistry() {
