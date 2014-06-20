@@ -54,10 +54,14 @@ class ObjectSchema implements JsonSchema {
 
         results = Stream.concat(results, jsonObject.entrySet().stream()
                 .filter(e -> !visitedPropertyNames.contains(e.getKey()))
-                .flatMap(e -> additionalProperties.validate(e.getValue()).stream().map(it -> new ErrorMessage(e.getKey(), it)))
+                .<ErrorMessage>flatMap(this::processNestedErrorMessages)
         );
 
         return results.collect(Collectors.toList());
+    }
+
+    private Stream<ErrorMessage> processNestedErrorMessages(Map.Entry<String, JsonValue> e) {
+        return additionalProperties.validate(e.getValue()).stream().map(it -> new ErrorMessage(e.getKey(), it));
     }
 
     static class Property {

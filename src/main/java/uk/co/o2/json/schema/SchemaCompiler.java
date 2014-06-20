@@ -117,7 +117,6 @@ class SchemaCompiler {
     private SimpleTypeSchema parseSimpleTypeSchema(JsonObject rawSchema) {
         SimpleTypeSchema result = new SimpleTypeSchema();
         result.setType(SimpleType.valueOf(rawSchema.getString("type").toUpperCase()));
-
         getOptionalString(rawSchema, "pattern").<Pattern>map(Pattern::compile).ifPresent(result::setPattern);
         getOptionalInteger(rawSchema, "minLength").ifPresent(result::setMinLength);
         getOptionalInteger(rawSchema, "maxLength").ifPresent(result::setMaxLength);
