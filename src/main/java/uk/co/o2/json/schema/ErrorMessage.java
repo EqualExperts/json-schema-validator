@@ -38,4 +38,18 @@ public class ErrorMessage {
     public String toString() {
         return String.format("%s: %s", location, message);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ErrorMessage)) {
+            return false;
+        }
+        ErrorMessage other = (ErrorMessage) obj;
+        return toString().equals(other.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
 }
