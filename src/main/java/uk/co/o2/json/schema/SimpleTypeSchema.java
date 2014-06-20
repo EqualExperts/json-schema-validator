@@ -38,6 +38,11 @@ class SimpleTypeSchema implements JsonSchema {
         return results;
     }
 
+    @Override
+    public String getDescription() {
+        return type.toString().toLowerCase();
+    }
+
     void setEnumeration(List<JsonNode> enumeration) {
         if (EnumSet.of(SimpleType.NULL, SimpleType.ANY).contains(type)) {
             throw new IllegalArgumentException("enumeration not allowed for Null or Any types");

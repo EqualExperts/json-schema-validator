@@ -19,6 +19,11 @@ class SchemaReference implements JsonSchema {
         return registry.getSchema(schemaLocation).validate(jsonDocumentToValidate);
     }
 
+    @Override
+    public String getDescription() {
+        return registry.getSchema(schemaLocation).getDescription();
+    }
+
     SchemaPassThroughCache getRegistry() {
         return registry;
     }

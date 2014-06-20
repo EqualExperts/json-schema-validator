@@ -1047,4 +1047,17 @@ public class SimpleTypeSchemaTest {
         assertTrue(result.get(0).getMessage().contains("A"));
         assertTrue(result.get(0).getMessage().contains("B"));
     }
+    
+    @Test
+    public void getDescription_shouldReturnTheLowercaseTypeName() throws Exception {
+        SimpleTypeSchema stringSchema = new SimpleTypeSchema();
+        stringSchema.setType(SimpleType.STRING);
+
+        assertEquals("string", stringSchema.getDescription());
+
+        SimpleTypeSchema nullSchema = new SimpleTypeSchema();
+        nullSchema.setType(SimpleType.NULL);
+
+        assertEquals("null", nullSchema.getDescription());
+    }
 }

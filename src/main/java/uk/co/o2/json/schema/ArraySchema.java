@@ -40,6 +40,11 @@ class ArraySchema implements JsonSchema {
         return results;
     }
 
+    @Override
+    public String getDescription() {
+        return "array";
+    }
+
     private List<ErrorMessage> generateNestedErrorMessages(int index, List<ErrorMessage> errorMessages) {
         List<ErrorMessage> nestedResults = new ArrayList<>();
         String pathPrefix = "[" + index + "]";

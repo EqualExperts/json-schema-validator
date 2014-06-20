@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.when;
@@ -41,5 +43,21 @@ public class SchemaReferenceTest {
         List<ErrorMessage> results = schema.validate(expectedDocument);
 
         assertSame(expectedResults, results);
+    }
+
+    @Test
+    public void getDescription_shouldReturnTheDescriptionOfTheReferencedSchema() throws Exception {
+        URL expectedSchemaLocation = new URL("http://www.example.com/");
+        String expectedDescription = "blahBlahBlah";
+
+        JsonSchema mockReferencedSchema = mock(JsonSchema.class);
+        doReturn(expectedDescription).when(mockReferencedSchema).getDescription();
+        when(registry.getSchema(expectedSchemaLocation)).thenReturn(mockReferencedSchema);
+
+        JsonSchema schema = new SchemaReference(registry, expectedSchemaLocation);
+
+        String description = schema.getDescription();
+
+        assertEquals(expectedDescription, description);
     }
 }

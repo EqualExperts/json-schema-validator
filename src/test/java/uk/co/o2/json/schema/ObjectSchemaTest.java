@@ -202,4 +202,13 @@ public class ObjectSchemaTest {
     public void shouldImplementJsonSchema() throws Exception {
         assertTrue(JsonSchema.class.isAssignableFrom(ObjectSchema.class));
     }
+
+    @Test
+    public void getDescription_shouldReturnObject() throws Exception {
+        ObjectSchema schema = new ObjectSchema();
+
+        String description = schema.getDescription();
+
+        assertEquals("object", description);
+    }
 }

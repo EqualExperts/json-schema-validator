@@ -13,12 +13,22 @@ class ObjectSchema implements JsonSchema {
         public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
             return emptyList();
         }
+
+        @Override
+        public String getDescription() {
+            return "";
+        }
     };
 
     public static final JsonSchema FORBID_ANY_ADDITIONAL_PROPERTIES = new JsonSchema() {
         @Override
         public List<ErrorMessage> validate(JsonNode jsonDocumentToValidate) {
             return singleError("", "Unexpected property");
+        }
+
+        @Override
+        public String getDescription() {
+            return "";
         }
     };
 
@@ -71,6 +81,11 @@ class ObjectSchema implements JsonSchema {
         }
 
         return results;
+    }
+
+    @Override
+    public String getDescription() {
+        return "object";
     }
 
     static class Property {

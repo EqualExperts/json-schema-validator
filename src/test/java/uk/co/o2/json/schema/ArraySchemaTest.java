@@ -159,4 +159,13 @@ public class ArraySchemaTest {
         assertEquals("",result.get(0).getLocation());
         assertEquals("Current array size of 3 is less than allowed minimum array size of 5", result.get(0).getMessage());
     }
+
+    @Test
+    public void getDescription_shouldReturnArray() throws Exception {
+        ArraySchema schema = new ArraySchema();
+
+        String description = schema.getDescription();
+
+        assertEquals("array", description);
+    }
 }
