@@ -1,6 +1,7 @@
 *.ipr
 *.iml
 *.iws
+.idea
 
 build
 out
