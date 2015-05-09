@@ -17,8 +17,6 @@ dependencies {
     runtime jersey
 }
 
-apply from: "ide-support.gradle"
-
 jar {
     from file('LICENSE.txt')
     from file('NOTICE')
