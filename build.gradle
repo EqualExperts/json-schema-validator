@@ -3,7 +3,7 @@ apply plugin: "java"
 allprojects {
     version = "0.3"
     repositories {
-        mavenCentral()
+        jcenter()
     }
 
     sourceCompatibility = "1.8"
